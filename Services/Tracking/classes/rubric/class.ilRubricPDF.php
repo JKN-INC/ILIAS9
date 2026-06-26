@@ -64,18 +64,29 @@ class ilRubricPDF
 
     public static function generatePDF($pdf_output, $output_mode, $filename = null)
     {
-        ob_clean();
         $pdf_output = preg_replace("/src=\"\\.\\//ims", "src=\"" . ILIAS_HTTP_PATH . "/", $pdf_output);
         $pdf_output = preg_replace("/href=\"\\.\\//ims", "href=\"" . ILIAS_HTTP_PATH . "/", $pdf_output);
 
-        $pdf_factory = new ilHtmlToPdfTransformerFactory();
-        $pdf_factory->deliverPDFFromHTMLString(
-            $pdf_output,
-            'test.pdf',
-            'D',
-            "Test",
-            "ContentExport"
-        );
+        $title = htmlspecialchars($filename ?? 'Rubric', ENT_QUOTES, 'UTF-8');
+
+        $html = '<!DOCTYPE html>'
+            . '<html><head>'
+            . '<meta charset="UTF-8">'
+            . '<title>' . $title . '</title>'
+            . '<style>'
+            . '@page { margin: 1cm; }'
+            . '@media print { body { margin: 0; } }'
+            . 'body { font-family: Arial, sans-serif; padding: 1rem; }'
+            . '</style>'
+            . '</head><body>'
+            . $pdf_output
+            . '<script>window.onload = function() { window.print(); };</script>'
+            . '</body></html>';
+
+        ob_clean();
+        header('Content-Type: text/html; charset=UTF-8');
+        echo $html;
+        exit();
     }
 
     /**

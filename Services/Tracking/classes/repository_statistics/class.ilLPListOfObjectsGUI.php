@@ -408,7 +408,10 @@ class ilLPListOfObjectsGUI extends ilLearningProgressBaseGUI
     public function showRubricCardForm(): void
     {
         if ($this->isAnonymized()) {
-            ilUtil::sendFailure($this->lng->txt('permission_denied'));
+            $this->tpl->setOnScreenMessage(
+                'failure',
+                $this->lng->txt('permission_denied')
+            );
             return;
         }
         // bring in GUI and DB objects
@@ -440,6 +443,17 @@ class ilLPListOfObjectsGUI extends ilLearningProgressBaseGUI
             $this->saveRubricCard();
         }
         $this->showRubricCardForm();
+    }
+
+    public function lockRubricGradeForm(): void
+    {
+        include_once("./Services/Tracking/classes/rubric/class.ilLPRubricGrade.php");
+        $rubricObj = new ilLPRubricGrade($this->getObjId());
+        $rubricObj->lockUnlockGrade();
+        if ($rubricObj->isGradingLocked()) {
+            $this->saveRubricGrade();
+        }
+        $this->showRubricGradeForm();
     }
 
     function viewHistory(): void

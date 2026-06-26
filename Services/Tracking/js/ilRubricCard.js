@@ -1235,8 +1235,4 @@ var RUBRIC = {
         validate(rubric_inputs[i]);
       }
     }
-    $(".point-input").tooltip({
-      trigger: "focus",
-      title: 'Please use the following format "##-##"',
-    });
   });
