@@ -247,7 +247,9 @@ class ilMediaAliasItem
             $this->getItemNode(),
             "Caption",
             array("TextRepresentation", "Parameter", "MapArea"),
-            $a_caption,
+            // JKN PATCH START
+            nl2br($a_caption),
+            // JKN PATCH END
             array("Align" => "bottom")
         );
     }
@@ -261,7 +263,9 @@ class ilMediaAliasItem
             "/Caption"
         );
         if (is_object($caption_node)) {
-            return $this->dom_util->getContent($caption_node);
+            // JKN PATCH START
+            return str_ireplace('<br />', "\r\n", $this->dom_util->getContent($caption_node));
+            // JKN PATCH END
         }
         return "";
     }
