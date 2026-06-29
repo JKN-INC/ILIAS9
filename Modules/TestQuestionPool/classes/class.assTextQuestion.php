@@ -801,6 +801,15 @@ class assTextQuestion extends assQuestion implements ilObjQuestionScoringAdjusta
     */
     public function toJSON(): string
     {
+        // JKN PATCH START
+        $questions = [];
+        foreach ($this->getAnswers() as $index => $answer) {
+            array_push($questions, [
+                'text'   => $answer->getAnswertext(),
+                'points' => $answer->getPoints()
+            ]);
+        }
+        // JKN PATCH END
         $result = [];
         $result['id'] = $this->getId();
         $result['type'] = (string) $this->getQuestionType();
@@ -808,6 +817,17 @@ class assTextQuestion extends assQuestion implements ilObjQuestionScoringAdjusta
         $result['question'] = $this->formatSAQuestion($this->getQuestion());
         $result['nr_of_tries'] = $this->getNrOfTries();
         $result['shuffle'] = $this->getShuffle();
+        // JKN PATCH START
+        $result['answers'] = $questions;
+        $result['text_rating'] = $this->getTextRating();
+        $result['feedback'] = [
+            'incorrect' => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), false),
+            'correct'   => $this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true)
+        ];
+        $result['max_points'] = $this->getMaximumPoints();
+        $result['relation'] = (string) $this->getKeywordRelation();
+        $result['mobs'] = [];
+        // JKN PATCH END
         $result['maxlength'] = $this->getMaxNumOfChars();
         return json_encode($result);
     }
