@@ -86,7 +86,7 @@ final class LocalConfig
         private string $rootPath,
         private int $fileAccessPublic = 0744,
         private int $fileAccessPrivate = 0700,
-        private int $directoryAccessPublic = 0755,
+        private int $directoryAccessPublic = 0775, // JKN PATCH
         private int $directoryAccessPrivate = 0700,
         private int $lockMode = LOCK_EX,
         private int $linkBehaviour = self::SKIP_LINKS
