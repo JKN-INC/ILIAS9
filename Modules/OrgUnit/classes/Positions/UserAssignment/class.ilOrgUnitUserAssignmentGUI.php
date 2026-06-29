@@ -197,6 +197,15 @@ class ilOrgUnitUserAssignmentGUI extends BaseCommands
         }
         $this->assignmentRepo->delete($assignment);
 
+        // JKN PATCH START
+        global $DIC;
+        $ilAppEventHandler = $DIC['ilAppEventHandler'];
+        $ilAppEventHandler->raise('Modules/Orgunit', 'removeFromOrg', array(
+            'usr_id' => $usr_id,
+            'orgu_ref_id' => $this->getParentRefId()
+        ));
+        // JKN PATCH END
+
         $this->main_tpl->setOnScreenMessage('success', $this->language->txt('remove_successful'), true);
         $this->cancel();
     }
