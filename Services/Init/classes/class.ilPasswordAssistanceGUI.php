@@ -292,8 +292,9 @@ class ilPasswordAssistanceGUI implements ilCtrlSecurityInterface
 
         $username = $form_data[self::PROP_USERNAME];
         $email = $form_data[self::PROP_EMAIL];
+        $userExists = false;
 
-        $assistance_callback = function () use ($defaultAuth, $username, $email): void {
+        $assistance_callback = function () use ($defaultAuth, $username, $email, &$userExists): void {
             $usr_id = ilObjUser::getUserIdByLogin($username);
             if (!is_numeric($usr_id) || !($usr_id > 0)) {
                 ilLoggerFactory::getLogger('usr')->info(
@@ -353,6 +354,7 @@ class ilPasswordAssistanceGUI implements ilCtrlSecurityInterface
                     )
                 );
             } else {
+                $userExists = true;
                 $this->sendPasswordAssistanceMail($user);
             }
         };
@@ -364,7 +366,14 @@ class ilPasswordAssistanceGUI implements ilCtrlSecurityInterface
             $status = $assistance_callback();
         }
 
-        $this->showMessageForm(sprintf($this->lng->txt('pwassist_mail_sent'), $email), self::PERMANENT_LINK_TARGET_PW);
+        if($userExists)
+        {
+            $this->showMessageForm(sprintf($this->lng->txt('pwassist_mail_sent_generic'), $email), self::PERMANENT_LINK_TARGET_PW);
+        }
+        else 
+        {
+            $this->showMessageForm(sprintf($this->lng->txt('pwassist_unknown_username_or_email'), $username, $email), self::PERMANENT_LINK_TARGET_PW);
+        }
     }
 
     /**
