@@ -1,0 +1,325 @@
+/* Restore Bootstrap 3 form feedback icon positioning (removed from ILIAS 9 delos.css) */
+.has-feedback {
+    position: relative;
+}
+.form-control-feedback {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: block;
+    width: 1.56rem;
+    height: 1.56rem;
+    line-height: 1.56rem;
+    text-align: center;
+    pointer-events: none;
+}
+.glyphicon.form-control-feedback {
+    position: absolute;
+    line-height: 2;
+}
+.has-feedback label ~ .form-control-feedback {
+    top: 25px;
+}
+.has-feedback label.sr-only ~ .form-control-feedback {
+    top: 0;
+}
+/* Nudge icon down slightly in input-groups where there is no label inside has-feedback */
+.input-group.has-feedback .form-control-feedback {
+    top: 0.3rem;
+}
+
+/* Restore Bootstrap 3 tooltip styles (absent from ILIAS 9 delos.css) */
+.tooltip {
+    position: absolute;
+    z-index: 1070;
+    display: block;
+    font-size: 12px;
+    line-height: 1.42857143;
+    opacity: 0;
+}
+.tooltip.in   { opacity: 0.9; }
+.tooltip.top    { padding: 5px 0;  margin-top: -3px; }
+.tooltip.right  { padding: 0 5px;  margin-left: 3px; }
+.tooltip.bottom { padding: 5px 0;  margin-top: 3px; }
+.tooltip.left   { padding: 0 5px;  margin-left: -3px; }
+.tooltip-inner {
+    max-width: 200px;
+    padding: 3px 8px;
+    color: #fff;
+    text-align: center;
+    background-color: #000;
+    border-radius: 4px;
+}
+.tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+}
+.tooltip.top .tooltip-arrow {
+    bottom: 0; left: 50%; margin-left: -5px;
+    border-width: 5px 5px 0; border-top-color: #000;
+}
+.tooltip.right .tooltip-arrow {
+    top: 50%; left: 0; margin-top: -5px;
+    border-width: 5px 5px 5px 0; border-right-color: #000;
+}
+.tooltip.bottom .tooltip-arrow {
+    top: 0; left: 50%; margin-left: -5px;
+    border-width: 0 5px 5px; border-bottom-color: #000;
+}
+.tooltip.left .tooltip-arrow {
+    top: 50%; right: 0; margin-top: -5px;
+    border-width: 5px 0 5px 5px; border-left-color: #000;
+}
+
+/* Restore Bootstrap 3 form state colours (absent from ILIAS 9 delos.css) */
+.has-success .form-control {
+    border-color: #3c763d;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+}
+.has-success .form-control:focus {
+    border-color: #2b542c;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px #67b168;
+}
+.has-success .form-control-feedback { color: #3c763d; }
+.has-success .control-label        { color: #3c763d; }
+
+.has-warning .form-control {
+    border-color: #8a6d3b;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+}
+.has-warning .form-control:focus {
+    border-color: #66512c;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px #c0a16b;
+}
+.has-warning .form-control-feedback { color: #8a6d3b; }
+.has-warning .control-label         { color: #8a6d3b; }
+
+.has-error .form-control {
+    border-color: #a94442;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+}
+.has-error .form-control:focus {
+    border-color: #843534;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px #ce8483;
+}
+.has-error .form-control-feedback { color: #a94442; }
+.has-error .control-label         { color: #a94442; }
+
+.col-custom-7 {
+    width: 14.25%;
+  }
+
+  .col-custom-8 {
+    width: 12.5%;
+  }
+
+  .rubric_error {
+    background-color: red;
+    border-radius: 5px;
+    color: #fff;
+  }
+
+  .table-rubric-style > thead > tr > th {
+    text-align: center;
+  }
+
+  .table-rubric-style > thead > tr > th:nth-child(odd):not(:first-child) {
+    background-color: #849bb9 !important;
+    color: white;
+  }
+
+  .table-rubric-style > thead > tr > th:first-child {
+    background-color: #94a8c2 !important;
+    color: white;
+  }
+
+  .table-rubric-style > thead > tr > th:nth-child(even) {
+    background-color: #8ba1bd !important;
+    color: white;
+  }
+
+  .table-rubric-style .range-row th {
+    text-align: center;
+    border: 1px solid #f2f2f2;
+  }
+
+  .table-rubric-style > tbody:nth-child(even) .big-block {
+    background-color: #f0f3f7 !important;
+  }
+
+  #jkn_div_rubric
+    > table.table-rubric-style
+    > tbody:nth-child(even)
+    > tr.first-group
+    > td:nth-child(even) {
+    background-color: #dbe2eb;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(even)
+    > tr.first-group
+    > td:nth-child(odd):not(:first-child) {
+    background-color: #c0ccdb;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(even)
+    > tr:nth-child(even)
+    > td:nth-child(odd) {
+    background-color: #dbe2eb;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(even)
+    > tr:nth-child(even)
+    > td:nth-child(even) {
+    background-color: #c0ccdb;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(even)
+    > tr:nth-child(odd)
+    > td:nth-child(odd) {
+    background-color: #edf1f5;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(even)
+    > tr:nth-child(odd)
+    > td:nth-child(even) {
+    background-color: #dfe6ed;
+    color: black;
+  }
+
+  .table-rubric-style .total-row th {
+    background-color: #aaaaaa !important;
+    color: white !important;
+  }
+
+  .table-rubric-style .total-row td {
+    background-color: #aaaaaa !important;
+    color: white !important;
+  }
+
+  .table-rubric-style > tbody:nth-child(odd) .big-block {
+    background-color: #eff5ea !important;
+  }
+
+  #jkn_div_rubric
+    > table.table-rubric-style
+    > tbody:nth-child(odd)
+    > tr.first-group
+    > td:nth-child(even) {
+    background-color: #eaf1e2;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(odd)
+    > tr.first-group
+    > td:nth-child(odd):not(:first-child) {
+    background-color: #cbddb9;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(odd)
+    > tr:nth-child(even)
+    > td:nth-child(odd) {
+    background-color: #eaf1e2;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(odd)
+    > tr:nth-child(even)
+    > td:nth-child(even) {
+    background-color: #cbddb9;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(odd)
+    > tr:nth-child(odd)
+    > td:nth-child(odd) {
+    background-color: #cbddb9;
+    color: black;
+  }
+
+  .table-rubric-style
+    > tbody:nth-child(odd)
+    > tr:nth-child(odd)
+    > td:nth-child(even) {
+    background-color: #b4ce9a;
+    color: black;
+  }
+
+  .table-rubric-style .grade-point {
+    text-align: center;
+  }
+
+  .table-rubric-style > tbody > tr.tblrow1 > td.range-flag {
+    background-color: #fbb117 !important;
+  }
+
+  .textarea_grade_comment {
+    min-width: 207px !important;
+    min-height: 50px !important;
+    overflow: auto !important;
+    resize: vertical;
+  }
+
+  .textarea_other {
+    height: 100px !important;
+    overflow: hidden;
+    resize: none;
+  }
+
+  .general_comment_placeholder {
+    width: 100%;
+    resize: vertical;
+    min-height: 75px !important;
+  }
+
+  .td_comment {
+    background-color: #ffffff !important;
+    border: 1px solid #f2f2f2;
+  }
+
+  .comment_placeholder_p {
+    background-color: white;
+    padding: 10px;
+    margin: 0px !important;
+  }
+
+  /*
+  .table-rubric-style>tbody>tr:nth-child(odd)>td:nth-child(odd)
+  {
+      background-color: #94a8c2;
+      color: black;
+  }
+  .table-rubric-style>tbody>tr:nth-child(odd)>td:nth-child(even)
+  {
+      background-color: #dfe6ed;
+      color: black;
+  }
+  .table-rubric-style>tbody>tr:nth-child(even)>td:nth-child(odd)
+  {
+      background-color: #dbe2eb;
+      color: black;
+  }
+  .table-rubric-style>tbody>tr:nth-child(even)>td:nth-child(even)
+  {
+      background-color: #c0ccdb;
+      color: black;
+  }
+  */
