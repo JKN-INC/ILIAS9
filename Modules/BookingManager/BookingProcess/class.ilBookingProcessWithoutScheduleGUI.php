@@ -333,6 +333,20 @@ class ilBookingProcessWithoutScheduleGUI implements \ILIAS\BookingManager\Bookin
         }
 
         if ($success) {
+            // JKN PATCH START
+            global $DIC;
+            $ilAppEventHandler = $DIC['ilAppEventHandler'];
+            $ilAppEventHandler->raise(
+                "Modules/BookingManager",
+                'participantBooked',
+                [
+                    'obj_id' => $success,
+                    'usr_id' => $this->user_id_to_book,
+                    'ref_id' => $this->pool->getRefId(),
+                    'a_rsv_ids' => $rsv_ids
+                ]
+            );
+            // JKN PATCH END
             $this->util_gui->handleBookingSuccess($success, "displayPostInfo", $rsv_ids);
         } else {
             $this->tpl->setOnScreenMessage('failure', $this->lng->txt('book_reservation_failed'), true);
