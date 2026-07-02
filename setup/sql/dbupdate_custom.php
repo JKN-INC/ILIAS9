@@ -121,3 +121,9 @@ $rubricLock = new rubricGradeLockConfig();
 $rubricLock->installDB();
 
 ?>
+<#2>
+<?php
+
+$ilDB->query("ALTER TABLE obj_members ADD COLUMN IF NOT EXISTS `failed` TINYINT(4) DEFAULT NULL");
+
+?>

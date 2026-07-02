@@ -89,6 +89,78 @@ class ilCourseParticipants extends ilParticipants
         );
     }
 
+    // JKN PATCH START
+    public function updateFailed(int $a_usr_id, bool $a_failed, bool $a_manual = false, bool $a_no_origin = false): void
+    {
+        $this->participants_status[$a_usr_id]['failed'] = (int) $a_failed;
+        self::_updateFailed($this->obj_id, $a_usr_id, $a_failed, $a_manual, $a_no_origin);
+    }
+
+    public static function _updateFailed(
+        int $a_obj_id,
+        int $a_usr_id,
+        bool $a_failed,
+        bool $a_manual = false,
+        bool $a_no_origin = false
+    ): void {
+        global $DIC;
+
+        $ilDB = $DIC['ilDB'];
+        $ilUser = $DIC['ilUser'];
+        $ilAppEventHandler = $DIC->event();
+
+        $origin = -1;
+        if ($a_manual) {
+            $origin = $ilUser->getId();
+        }
+
+        $query = "SELECT failed FROM obj_members " .
+            "WHERE obj_id = " . $ilDB->quote($a_obj_id, 'integer') . " " .
+            "AND usr_id = " . $ilDB->quote($a_usr_id, 'integer');
+        $res = $ilDB->query($query);
+        $update_query = '';
+
+        if ($res->numRows()) {
+            $old = $ilDB->fetchAssoc($res);
+            $failedValue = isset($old["failed"]) ? (int) $old["failed"] : 0;
+            if ($failedValue !== (int) $a_failed) {
+                $update_query = "UPDATE obj_members SET " .
+                    "failed = " . $ilDB->quote((int) $a_failed, 'integer') . ", passed = 0, " .
+                    "origin = " . $ilDB->quote($origin, 'integer') . ", " .
+                    "origin_ts = " . $ilDB->quote(time(), 'integer') . " " .
+                    "WHERE obj_id = " . $ilDB->quote($a_obj_id, 'integer') . " " .
+                    "AND usr_id = " . $ilDB->quote($a_usr_id, 'integer');
+            }
+        } else {
+            if ($a_no_origin && !$a_failed) {
+                $origin = 0;
+                $origin_ts = 0;
+            } else {
+                $origin_ts = time();
+            }
+
+            $update_query = "INSERT INTO obj_members (failed,obj_id,usr_id,notification,blocked,origin,origin_ts) " .
+                "VALUES ( " .
+                $ilDB->quote((int) $a_failed, 'integer') . ", " .
+                $ilDB->quote($a_obj_id, 'integer') . ", " .
+                $ilDB->quote($a_usr_id, 'integer') . ", " .
+                $ilDB->quote(0, 'integer') . ", " .
+                $ilDB->quote(0, 'integer') . ", " .
+                $ilDB->quote($origin, 'integer') . ", " .
+                $ilDB->quote($origin_ts, 'integer') . ")";
+        }
+        if (strlen($update_query)) {
+            $ilDB->manipulate($update_query);
+            if ($a_failed) {
+                $ilAppEventHandler->raise('Modules/Course', 'participantHasFailedCourse', array(
+                    'obj_id' => $a_obj_id,
+                    'usr_id' => $a_usr_id,
+                ));
+            }
+        }
+    }
+    // JKN PATCH END
+
     public function updatePassed(
         int $a_usr_id,
         bool $a_passed,
@@ -128,7 +200,9 @@ class ilCourseParticipants extends ilParticipants
             $old = $ilDB->fetchAssoc($res);
             if ((int) $old["passed"] !== (int) $a_passed) {
                 $update_query = "UPDATE obj_members SET " .
-                    "passed = " . $ilDB->quote($a_passed, 'integer') . ", " .
+                    // JKN PATCH START
+                    "passed = " . $ilDB->quote((int) $a_passed, 'integer') . ", failed = 0, " .
+                    // JKN PATCH END
                     "origin = " . $ilDB->quote($origin, 'integer') . ", " .
                     "origin_ts = " . $ilDB->quote(time(), 'integer') . " " .
                     "WHERE obj_id = " . $ilDB->quote($a_obj_id, 'integer') . " " .
