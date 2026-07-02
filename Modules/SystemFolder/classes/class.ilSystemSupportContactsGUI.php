@@ -99,27 +99,26 @@ class ilSystemSupportContactsGUI implements ilCtrlBaseClassInterface
      *
      * @return string footer link
      */
+    // JKN PATCH START
     public static function getFooterLink()
     {
         global $DIC;
 
-        $ilCtrl = $DIC->ctrl();
-        $ilUser = $DIC->user();
+        $http = $DIC->http();
+        $request_scheme =
+            isset($http->request()->getServerParams()['HTTPS'])
+            && $http->request()->getServerParams()['HTTPS'] !== 'off'
+            ? 'https' : 'http';
+        $url = $request_scheme . '://'
+            . $http->request()->getServerParams()['HTTP_HOST']
+            . $http->request()->getServerParams()['REQUEST_URI'];
 
-        $users = ilSystemSupportContacts::getValidSupportContactIds();
-        if (count($users) > 0) {
-            // #17847 - we cannot use a proper GUI on the login screen
-            if (!$ilUser->getId() || $ilUser->getId() == ANONYMOUS_USER_ID) {
-                return "mailto:" . ilLegacyFormElementsUtil::prepareFormOutput(
-                    ilSystemSupportContacts::getMailsToAddress()
-                );
-            } else {
-                return $ilCtrl->getLinkTargetByClass("ilsystemsupportcontactsgui", "", "", false, false);
-            }
-        }
-
-        return "";
+        $admin_email = $DIC->settings()->get("admin_email", "support@cpkn.ca");
+        $client_id = CLIENT_ID;
+        $encoded_url = rawurlencode($url);
+        return "mailto:$admin_email?subject=Support%20Request&body=%0D%0A%0D%0A***%0D%0A$client_id%0D%0A$encoded_url%20";
     }
+    // JKN PATCH END
 
     /**
      * Get footer text

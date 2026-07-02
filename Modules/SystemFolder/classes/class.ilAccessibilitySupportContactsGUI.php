@@ -90,36 +90,26 @@ class ilAccessibilitySupportContactsGUI implements ilCtrlBaseClassInterface
         return implode(",", $logins);
     }
 
+    // JKN PATCH START
     public static function getFooterLink(): string
     {
         global $DIC;
 
-        $ctrl = $DIC->ctrl();
-        $user = $DIC->user();
         $http = $DIC->http();
-        $lng = $DIC->language();
-        $rbac_system = $DIC->rbac()->system();
+        $request_scheme =
+            isset($http->request()->getServerParams()['HTTPS'])
+            && $http->request()->getServerParams()['HTTPS'] !== 'off'
+            ? 'https' : 'http';
+        $url = $request_scheme . '://'
+            . $http->request()->getServerParams()['HTTP_HOST']
+            . $http->request()->getServerParams()['REQUEST_URI'];
 
-        $contacts = ilAccessibilitySupportContacts::getValidSupportContactIds();
-        if (count($contacts) > 0) {
-            if ($rbac_system->checkAccess("internal_mail", ilMailGlobalServices::getMailObjectRefId())) {
-                return $ctrl->getLinkTargetByClass("ilaccessibilitysupportcontactsgui", "");
-            } else {
-                $mails = ilLegacyFormElementsUtil::prepareFormOutput(
-                    ilAccessibilitySupportContacts::getMailsToAddress()
-                );
-                $request_scheme =
-                    isset($http->request()->getServerParams()["HTTPS"])
-                    && $http->request()->getServerParams()["HTTPS"] !== "off"
-                        ? "https" : "http";
-                $url = $request_scheme . "://"
-                    . $http->request()->getServerParams()["HTTP_HOST"]
-                    . $http->request()->getServerParams()["REQUEST_URI"];
-                return "mailto:" . $mails . "?body=%0D%0A%0D%0A" . $lng->txt("report_accessibility_link_mailto") . "%0A" . rawurlencode($url);
-            }
-        }
-        return "";
+        $admin_email = $DIC->settings()->get("admin_email", "support@cpkn.ca");
+        $client_id = CLIENT_ID;
+        $encoded_url = rawurlencode($url);
+        return "mailto:$admin_email?subject=Support%20Request&body=%0D%0A%0D%0A***%0D%0A$client_id%0D%0A$encoded_url%20";
     }
+    // JKN PATCH END
 
     public static function getFooterText(): string
     {

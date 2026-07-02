@@ -18,6 +18,9 @@
 	<events>
 		<event type="listen" id="Services/User" />
 		<event type="listen" id="Services/Object" />
+		<!-- JKN PATCH START -->
+		<event type="raise" id="participantBooked" />
+		<!-- JKN PATCH END -->
 	</events>
 	<web_access_checker>
 		<secure_path path="ilBookingManager" checking-class="ilObjBookingPoolAccess"/>

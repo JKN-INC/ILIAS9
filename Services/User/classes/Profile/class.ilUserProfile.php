@@ -489,7 +489,9 @@ class ilUserProfile
         $birthday_input = new ilBirthdayInputGUI($this->lng->txt($lang_var), 'usr_' . $field_id);
         $date = null;
         if ($user && $user->$method() && strlen($user->$method())) {
-            $date = new ilDateTime($user->$method(), IL_CAL_DATE);
+            // JKN PATCH START
+            $date = new ilDate($user->$method(), IL_CAL_DATE);
+            // JKN PATCH END
             $birthday_input->setDate($date);
         }
         $birthday_input->setRequired((bool) $this->settings->get('require_' . $field_id));
