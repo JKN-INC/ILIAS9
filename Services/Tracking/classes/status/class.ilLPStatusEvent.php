@@ -97,9 +97,9 @@ class ilLPStatusEvent extends ilLPStatus
         $status_info['description'] = ilObject::_lookupDescription($a_obj_id);
 
         $time_info = ilSessionAppointment::_lookupAppointment($a_obj_id);
-        $status_info['starting_time'] = $time_info['start'];
-        $status_info['ending_time'] = $time_info['end'];
-        $status_info['fullday'] = $time_info['fullday'];
+        $status_info['starting_time'] = $time_info['start'] ?? null;
+        $status_info['ending_time'] = $time_info['end'] ?? null;
+        $status_info['fullday'] = $time_info['fullday'] ?? false;
 
         $status_info['registered_users'] = ilEventParticipants::_getRegistered(
             $a_obj_id
