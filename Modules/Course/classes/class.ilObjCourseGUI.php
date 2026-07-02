@@ -1709,9 +1709,7 @@ class ilObjCourseGUI extends ilContainerGUI
      */
     public function updateLPFromStatus(int $a_member_id, bool $a_has_passed): void
     {
-        // JKN PATCH START
         if (ilObjUserTracking::_enabledLearningProgress()) {
-        // JKN PATCH END
             $olp = ilObjectLP::getInstance($this->object->getId());
             if ($olp->getCurrentMode() == ilLPObjSettings::LP_MODE_MANUAL_BY_TUTOR) {
                 $marks = new ilLPMarks($this->object->getId(), $a_member_id);

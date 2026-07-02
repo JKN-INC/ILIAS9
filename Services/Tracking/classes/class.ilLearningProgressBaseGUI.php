@@ -712,21 +712,6 @@ class ilLearningProgressBaseGUI
         $comm->setValue($marks->getComment());
         $form->addItem($comm);
 
-        // JKN PATCH START
-        // if ($lp_mode == ilLPObjSettings::LP_MODE_MANUAL ||
-        //     $lp_mode == ilLPObjSettings::LP_MODE_MANUAL_BY_TUTOR) {
-        //     $completed = ilLPStatus::_lookupStatus($a_obj_id, $a_user_id);
-        //     $status = new ilCheckboxInputGUI(
-        //         $this->lng->txt('trac_completed'),
-        //         "completed"
-        //     );
-        //     $status->setChecked(
-        //         ($completed == ilLPStatus::LP_STATUS_COMPLETED_NUM)
-        //     );
-        //     $form->addItem($status);
-        // }
-        // JKN PATCH END
-
         $form->addCommandButton("updateUser", $this->lng->txt('save'));
 
         if ($a_cancel) {
@@ -762,24 +747,7 @@ class ilLearningProgressBaseGUI
             $marks->setMark($form->getInput("mark"));
             $marks->setComment($form->getInput("comment"));
 
-            // JKN PATCH START
-            // $do_lp = false;
-            // // status/completed is optional
-            // $status = $form->getItemByPostVar("completed");
-            // if (is_object($status)) {
-            //     if ($marks->getCompleted() != $form->getInput("completed")) {
-            //         $marks->setCompleted($form->getInput("completed"));
-            //         $do_lp = true;
-            //     }
-            // }
-
             $marks->update();
-
-            // // #11600
-            // if ($do_lp) {
-            //     ilLPStatusWrapper::_updateStatus($obj_id, $user_id);
-            // }
-            // JKN PATCH END
         }
     }
 

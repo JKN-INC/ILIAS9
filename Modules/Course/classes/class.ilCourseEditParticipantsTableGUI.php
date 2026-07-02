@@ -54,9 +54,7 @@ class ilCourseEditParticipantsTableGUI extends ilTable2GUI
 
         parent::__construct($a_parent_obj, 'editMembers');
         $this->lng->loadLanguageModule('crs');
-        // JKN PATCH START
         $this->lng->loadLanguageModule('trac');
-        // JKN PATCH END
         $this->setFormName('participants');
         $this->setFormAction($this->ctrl->getFormAction($a_parent_obj));
 
@@ -66,9 +64,7 @@ class ilCourseEditParticipantsTableGUI extends ilTable2GUI
         if ($this->privacy->enabledCourseAccessTimes()) {
             $this->addColumn($this->lng->txt('last_access'), 'access_time');
         }
-        // JKN PATCH START
         $this->addColumn($this->lng->txt('crs_status'), 'status');
-        // JKN PATCH END
         $this->addColumn($this->lng->txt('crs_blocked'), 'blocked');
         $this->addColumn($this->lng->txt('crs_mem_contact'), 'contact');
         $this->addColumn($this->lng->txt('crs_notification'), 'notification');
@@ -109,18 +105,15 @@ class ilCourseEditParticipantsTableGUI extends ilTable2GUI
         }
         $this->tpl->setVariable('VAL_CONTACT_CHECKED', $a_set['contact'] ? 'checked="checked"' : '');
         $this->tpl->setVariable('VAL_NOTIFICATION_CHECKED', $a_set['notification'] ? 'checked="checked"' : '');
-        // JKN PATCH START
-        $options = array(
+        $si = new ilSelectInputGUI($this->lng->txt("crs_status"), "status[" . $a_set['usr_id'] . "]");
+        $si->setOptions([
             ilLPStatus::LP_STATUS_COMPLETED => $this->lng->txt("trac_completed"),
             ilLPStatus::LP_STATUS_IN_PROGRESS => $this->lng->txt("trac_in_progress"),
             ilLPStatus::LP_STATUS_FAILED => $this->lng->txt("trac_failed"),
-            ilLPStatus::LP_STATUS_NOT_ATTEMPTED => $this->lng->txt("trac_not_attempted")
-        );
-        $si = new ilSelectInputGUI($this->lng->txt("crs_status"), "status[".$a_set['usr_id']."]");
+            ilLPStatus::LP_STATUS_NOT_ATTEMPTED => $this->lng->txt("trac_not_attempted"),
+        ]);
         $si->setValue($a_set['progress']);
-        $si->setOptions($options);
         $this->tpl->setVariable('GRADE_STATUS', $si->render());
-        // JKN PATCH END
         $this->tpl->setVariable('VAL_BLOCKED_CHECKED', $a_set['blocked'] ? 'checked="checked"' : '');
 
         $this->tpl->setVariable('NUM_ROLES', count($this->participants->getRoles()));

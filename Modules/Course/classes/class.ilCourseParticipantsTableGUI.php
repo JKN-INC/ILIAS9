@@ -98,9 +98,7 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
             $this->addColumn($this->lng->txt('last_access'), 'access_ut', '16em');
         }
 
-        // JKN PATCH START
         $this->addColumn($this->lng->txt('crs_status'), 'status');
-        // JKN PATCH END
         if ($this->show_lp_status_sync) {
             $this->addColumn($this->lng->txt('crs_member_passed_status_changed'), 'passed_timestamp');
         }
@@ -255,23 +253,18 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
         $this->tpl->setVariable('VAL_POSTNAME', 'participants');
 
         if ($this->access->checkAccess("grade", "", $this->rep_object->getRefId())) {
-            // JKN PATCH START
-            $options = array(
+            $si = new ilSelectInputGUI($this->lng->txt("crs_status"), "status[" . $a_set['usr_id'] . "]");
+            $si->setOptions([
                 ilLPStatus::LP_STATUS_COMPLETED => $this->lng->txt("trac_completed"),
                 ilLPStatus::LP_STATUS_IN_PROGRESS => $this->lng->txt("trac_in_progress"),
                 ilLPStatus::LP_STATUS_FAILED => $this->lng->txt("trac_failed"),
-                ilLPStatus::LP_STATUS_NOT_ATTEMPTED => $this->lng->txt("trac_not_attempted")
-            );
-            $si = new ilSelectInputGUI($this->lng->txt("crs_status"), "status[".$a_set['usr_id']."]");
+                ilLPStatus::LP_STATUS_NOT_ATTEMPTED => $this->lng->txt("trac_not_attempted"),
+            ]);
             $si->setValue($a_set['progress']);
-            $si->setOptions($options);
 
             $this->tpl->setCurrentBlock('grade');
             $this->tpl->setVariable('GRADE_STATUS', $si->render());
-            $this->tpl->setVariable('VAL_PASSED_CHECKED', ($a_set['passed'] ? 'checked="checked"' : ''));
-            $this->tpl->setVariable('PASSED_TITLE', $this->lng->txt('crs_member_passed'));
             $this->tpl->parseCurrentBlock();
-            // JKN PATCH END
         } else {
             $this->tpl->setVariable('VAL_PASSED_TXT', ($a_set['passed']
                 ? $this->lng->txt("yes")

@@ -232,31 +232,32 @@ class ilCourseMembershipGUI extends ilMembershipGUI
                 )
             );
         }
-        // JKN PATCH START
-        $statuses = (array) isset($_POST['status']) ? $_POST['status'] : [];
-        // JKN PATCH END
-        $passed = $this->initParticipantStatusFromPostFor('passed');
+        $statuses = [];
+        if ($this->http->wrapper()->post()->has('status')) {
+            $statuses = $this->http->wrapper()->post()->retrieve(
+                'status',
+                $this->refinery->kindlyTo()->dictOf(
+                    $this->refinery->kindlyTo()->string()
+                )
+            );
+        }
         $blocked = $this->initParticipantStatusFromPostFor('blocked');
         $contact = $this->initParticipantStatusFromPostFor('contact');
         $notification = $this->initParticipantStatusFromPostFor('notification');
 
         foreach ($visible_members as $member_id) {
             if ($this->access->checkAccess("grade", "", $this->getParentObject()->getRefId())) {
-                // JKN PATCH START
                 if (isset($statuses[$member_id])) {
-                    $status = ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM;
                     switch ($statuses[$member_id]) {
                         case ilLPStatus::LP_STATUS_FAILED:
-                            $status = ilLPStatus::LP_STATUS_FAILED_NUM;
                             $this->getMembersObject()->updateFailed($member_id, true, true);
                             break;
                         case ilLPStatus::LP_STATUS_COMPLETED:
-                            $status = ilLPStatus::LP_STATUS_COMPLETED_NUM;
                             $this->getMembersObject()->updatePassed($member_id, true, true);
                             break;
                         case ilLPStatus::LP_STATUS_NOT_ATTEMPTED:
-                            $lp_obj = ilObjectLP::getInstance($this->getParentObject()->getId());
-                            $lp_obj->resetLPDataForUserIds([$member_id]);
+                            ilObjectLP::getInstance($this->getParentObject()->getId())
+                                ->resetLPDataForUserIds([$member_id]);
                             break;
                         case ilLPStatus::LP_STATUS_IN_PROGRESS:
                             ilChangeEvent::_recordReadEvent(
@@ -267,9 +268,11 @@ class ilCourseMembershipGUI extends ilMembershipGUI
                             );
                             break;
                     }
-                    $this->updateLPFromStatus($member_id, $status);
+                    $this->updateLPFromStatus($member_id, in_array($statuses[$member_id], [
+                        ilLPStatus::LP_STATUS_COMPLETED,
+                        ilLPStatus::LP_STATUS_FAILED,
+                    ]));
                 }
-                // JKN PATCH END
             }
 
             if ($this->getMembersObject()->isAdmin($member_id) || $this->getMembersObject()->isTutor($member_id)) {

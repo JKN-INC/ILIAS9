@@ -112,22 +112,18 @@ class ilLPStatusManualByTutor extends ilLPStatus
         switch ($this->ilObjDataCache->lookupType($a_obj_id)) {
             case "crs":
             case "grp":
-                // completed?
-                // JKN PATCH START
-                $set = $this->db->query($q = "SELECT ut.usr_id,status,passed,failed FROM ut_lp_marks ut " .
+                // completed? also check failed flag from obj_members to support manual fail status
+                $set = $this->db->query(
+                    "SELECT ut.usr_id, passed, failed FROM ut_lp_marks ut " .
                     "INNER JOIN obj_members om ON om.obj_id = ut.obj_id AND om.usr_id = ut.usr_id " .
                     "WHERE ut.obj_id = " . $this->db->quote($a_obj_id, 'integer') . " " .
                     "AND ut.usr_id = " . $this->db->quote($a_usr_id, 'integer') . " " .
-                    "AND completed = '1' "
+                    "AND completed = '1'"
                 );
-                // JKN PATCH END
                 if ($rec = $this->db->fetchAssoc($set)) {
-                    $status = self::LP_STATUS_COMPLETED_NUM;
-                    // JKN PATCH START
-                    if ((int) $rec['failed'] === 1) {
-                        $status = self::LP_STATUS_FAILED_NUM;
-                    }
-                    // JKN PATCH END
+                    $status = (int) $rec['failed'] === 1
+                        ? self::LP_STATUS_FAILED_NUM
+                        : self::LP_STATUS_COMPLETED_NUM;
                 } else {
                     if (ilChangeEvent::hasAccessed($a_obj_id, $a_usr_id)) {
                         $status = self::LP_STATUS_IN_PROGRESS_NUM;
@@ -211,7 +207,6 @@ class ilLPStatusManualByTutor extends ilLPStatus
         int $a_obj_id,
         ?array $a_user_ids = null
     ): array {
-        // JKN PATCH START
         if (!$a_user_ids) {
             $a_user_ids = self::getMembers($a_obj_id);
             if (!$a_user_ids) {
@@ -219,7 +214,6 @@ class ilLPStatusManualByTutor extends ilLPStatus
             }
         }
         return self::_lookupStatusForObject($a_obj_id, self::LP_STATUS_FAILED_NUM, $a_user_ids);
-        // JKN PATCH END
     }
 
     /**
