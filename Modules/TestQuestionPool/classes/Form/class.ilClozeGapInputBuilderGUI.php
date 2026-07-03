@@ -272,6 +272,7 @@ class ilClozeGapInputBuilderGUI extends ilSubEnabledFormPropertyGUI
             . ',gap_text             : ' . '"' . $lng->txt('gap') . '"'
             . ',ok_text              : ' . '"' . $lng->txt('ok') . '"'
             . ',cancel_text          : ' . '"' . $lng->txt('cancel') . '"'
+            . ',wildcard             : ' . '"' . $lng->txt('cloze_wildcard') . '"'
         . '};';
 
         $DIC->ui()->mainTemplate()->addOnLoadCode(
@@ -305,6 +306,7 @@ class ilClozeGapInputBuilderGUI extends ilSubEnabledFormPropertyGUI
         $custom_template->setVariable('MISSING_VALUE', $lng->txt('msg_input_is_required'));
         $custom_template->setVariable('NOT_A_FORMULA', $lng->txt('err_no_formula'));
         $custom_template->setVariable('NOT_A_NUMBER', $lng->txt('err_no_numeric_value'));
+        $custom_template->setVariable('WILDCARD', $lng->txt('cloze_wildcard'));
         $custom_template->setVariable('CLOSE', $lng->txt('close'));
         $custom_template->setVariable('DELETE_GAP', $lng->txt('are_you_sure'));
         $custom_template->setVariable('PLEASE_SELECT', $lng->txt('please_select'));

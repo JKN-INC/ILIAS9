@@ -582,6 +582,7 @@ assessment#:#cloze_fixed_textlength#:#Text Field Length
 assessment#:#cloze_fixed_textlength_description#:#If you enter a value, all text gap fields, not providing an own maximum character limitation, as well as all numeric gap fields will be created with a fixed length of this value, so entering more than the allowed characters is not possible. Note, that for numeric gaps the decimal separator is counted as a regular character.
 assessment#:#cloze_gap_size_info#:#If you enter a value greater than 0, this gap text field will be created with the fixed length of this value. If you do not enter a value, the gap text field will be created with the value of the global fixed length.
 assessment#:#cloze_text#:#Cloze Text
+assessment#:#cloze_wildcard#:#Use * as a wildcard to match any text, and | to separate alternative correct answers (e.g. "colou*r" or "grey|gray").
 assessment#:#cloze_textgap_case_insensitive#:#Case Insensitive
 assessment#:#cloze_textgap_case_sensitive#:#Case Sensitive
 assessment#:#cloze_textgap_levenshtein_of#:#Levenshtein Distance of %s
@@ -678,6 +679,7 @@ assessment#:#essay_scoring_mode_keyword_relation_one#:#Automatic Scoring with Ke
 assessment#:#essay_scoring_mode_keyword_relation_one_desc#:#The points are granted automatically, if at least one keyword is found.
 assessment#:#essay_scoring_mode_without_keywords#:#No Automatic Scoring
 assessment#:#essay_scoring_mode_without_keywords_desc#:#No points are granted unless the tutor's manual scoring.
+assessment#:#essay_wildcard_alternate#:#Use * as a wildcard to match any text, and | to separate alternative correct answers (e.g. "colou*r" or "grey|gray").
 assessment#:#eval_all_users#:#Evaluation for All Users
 assessment#:#eval_legend_link#:#Please refer to the legend for the meaning of the column header symbols.
 assessment#:#evaluated_users#:#Evaluated Users
