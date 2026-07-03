@@ -745,6 +745,12 @@ class ilLPTableBaseGUI extends ilTable2GUI
                         }
                     }
                     break;
+
+                case "active":
+                    if ($value) {
+                        $result[$id] = 1;
+                    }
+                    break;
             }
         }
         return $result;

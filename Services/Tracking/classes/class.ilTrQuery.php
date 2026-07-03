@@ -1149,6 +1149,12 @@ class ilTrQuery
                         );
                         break;
 
+                    case "active":
+                        if ($value === 1 || $value === true) {
+                            $where[] = "active = " . $ilDB->quote(1, 'integer');
+                        }
+                        break;
+
                     case "gender":
                     case "zipcode":
                     case "sel_country":
@@ -1669,6 +1675,7 @@ class ilTrQuery
      * @param int         $a_parent_ref_id
      * @param array       $a_obj_ids
      * @param string|null $a_user_filter
+     * @param string|null $a_active_filter
      * @param array|null  $a_additional_fields
      * @param array|null  $a_privacy_fields
      * @param int|null    $a_check_agreement
@@ -1678,6 +1685,7 @@ class ilTrQuery
         int $a_parent_ref_id,
         array $a_obj_ids,
         string $a_user_filter = null,
+        string $a_active_filter = null,
         ?array $a_additional_fields = null,
         ?array $a_privacy_fields = null,
         ?int $a_check_agreement = null
@@ -1698,6 +1706,9 @@ class ilTrQuery
                     "text",
                     "%" . $a_user_filter . "%"
                 );
+            }
+            if ($a_active_filter) {
+                $where[] = "active = " . $ilDB->quote(1, 'integer');
             }
 
             // users
