@@ -717,6 +717,7 @@ assessment#:#feedback_correct_kprim#:#Show answer specific feedback for all corr
 assessment#:#feedback_correct_sc_mc#:#Show answer specific feedback for all correct answers (Correct answers are those, that lead to a positive score when chosen/selected).
 assessment#:#feedback_generic#:#Correct/Incorrect Answer Feedback
 assessment#:#feedback_incomplete_solution#:#At least one answer is not correct
+assessment#:#feedback_incomplete_solution_hint#:#Hint shown while tries remain
 assessment#:#feedback_setting#:#Mode of answer specific feedback.
 assessment#:#fileDownload#:#File download
 assessment#:#file_uploads#:#File Uploads

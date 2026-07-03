@@ -82,10 +82,33 @@ abstract class ilAssQuestionFeedback
     }
 
     /**
-     * returns the html of GENERIC feedback for the given question id for test presentation
-     * (either for the complete solution or for the incomplete solution)
+     * id for the generic "tries remaining" hint feedback (question types with nr_of_tries > 1)
      */
-    public function getGenericFeedbackTestPresentation(int $question_id, bool $solution_completed): string
+    private const FEEDBACK_SOLUTION_TRIES_ID = 2;
+
+    /**
+     * Normalizes the solution-completed flag used to key generic feedback content.
+     * Accepts the 'hint' sentinel (used for the tries-remaining hint feedback) in
+     * addition to the normal true/false (complete/incomplete) values.
+     *
+     * bool $solution_completed alone can't carry the 'hint' sentinel: PHP's weak
+     * scalar type coercion turns any non-empty string into (bool) true before a
+     * bool-typed parameter's body ever runs, so this must be called by every
+     * method that used to take a strict bool and now accepts bool|int|string.
+     */
+    private function normalizeSolutionCompletedFlag($solution_completed): int
+    {
+        if ($solution_completed === 'hint') {
+            return self::FEEDBACK_SOLUTION_TRIES_ID;
+        }
+        return (int) $solution_completed;
+    }
+
+    /**
+     * returns the html of GENERIC feedback for the given question id for test presentation
+     * (either for the complete solution, the incomplete solution, or the tries-remaining hint)
+     */
+    public function getGenericFeedbackTestPresentation(int $question_id, bool|int|string $solution_completed): string
     {
         if ($this->page_obj_output_mode == "edit") {
             return '';
@@ -131,6 +154,17 @@ abstract class ilAssQuestionFeedback
             'feedback_incomplete',
             $this->questionOBJ->isAdditionalContentEditingModePageObject()
         ));
+
+        // JKN PATCH START
+        //if there is more than one number of tries, give a specific hint feedback.
+        if ((int) $this->questionOBJ->getNrOfTries() > 0) {
+            $form->addItem($this->buildFeedbackContentFormProperty(
+                $this->lng->txt('feedback_incomplete_solution_hint'),
+                'feedback_tries',
+                $this->questionOBJ->isAdditionalContentEditingModePageObject()
+            ));
+        }
+        // JKN PATCH END
     }
 
     /**
@@ -181,6 +215,15 @@ abstract class ilAssQuestionFeedback
                     $page_object_type,
                     $this->getGenericFeedbackPageObjectId($this->questionOBJ->getId(), false)
                 );
+
+                // JKN PATCH START
+                if ((int) $this->questionOBJ->getNrOfTries() > 0) {
+                    $value_feedback_solution_tries = $this->getPageObjectNonEditableValueHTML(
+                        $page_object_type,
+                        $this->getGenericFeedbackPageObjectId($this->questionOBJ->getId(), 'hint')
+                    );
+                }
+                // JKN PATCH END
             }
 
         } else {
@@ -193,10 +236,24 @@ abstract class ilAssQuestionFeedback
                 $this->questionOBJ->getId(),
                 false
             );
+
+            // JKN PATCH START
+            if ((int) $this->questionOBJ->getNrOfTries() > 0) {
+                $value_feedback_solution_tries = $this->getGenericFeedbackContent(
+                    $this->questionOBJ->getId(),
+                    'hint'
+                );
+            }
+            // JKN PATCH END
         }
 
         $form->getItemByPostVar('feedback_complete')->setValue($value_feedback_solution_complete);
         $form->getItemByPostVar('feedback_incomplete')->setValue($value_feedback_solution_incomplete);
+        // JKN PATCH START
+        if ($form->getItemByPostVar('feedback_tries')) {
+            $form->getItemByPostVar('feedback_tries')->setValue($value_feedback_solution_tries);
+        }
+        // JKN PATCH END
     }
 
     /**
@@ -214,6 +271,13 @@ abstract class ilAssQuestionFeedback
         if (!$this->questionOBJ->isAdditionalContentEditingModePageObject()) {
             $this->saveGenericFeedbackContent($this->questionOBJ->getId(), false, (string) $form->getInput('feedback_incomplete'));
             $this->saveGenericFeedbackContent($this->questionOBJ->getId(), true, (string) $form->getInput('feedback_complete'));
+
+            // JKN PATCH START
+            //adding the hint text if the number of tries is greater than 0.
+            if ((int) $this->questionOBJ->getNrOfTries() > 0) {
+                $this->saveGenericFeedbackContent($this->questionOBJ->getId(), 'hint', (string) $form->getInput('feedback_tries'));
+            }
+            // JKN PATCH END
         }
     }
 
@@ -275,12 +339,12 @@ abstract class ilAssQuestionFeedback
      * the state is either the completed solution (all answers correct)
      * of the question or at least one incorrect answer.
      */
-    final public function getGenericFeedbackContent(int $question_id, bool $solution_completed): string
+    final public function getGenericFeedbackContent(int $question_id, bool|int|string $solution_completed): string
     {
         $res = $this->db->queryF(
             "SELECT * FROM {$this->getGenericFeedbackTableName()} WHERE question_fi = %s AND correctness = %s",
             ['integer', 'text'],
-            [$question_id, (int) $solution_completed]
+            [$question_id, $this->normalizeSolutionCompletedFlag($solution_completed)]
         );
 
         $feedback_content = '';
@@ -325,8 +389,9 @@ abstract class ilAssQuestionFeedback
      * Generic feedback is either feedback for the completed solution (all answers correct)
      * of the question or at least onen incorrect answer.
      */
-    final public function saveGenericFeedbackContent(int $question_id, bool $solution_completed, string $feedback_content): int
+    final public function saveGenericFeedbackContent(int $question_id, bool|int|string $solution_completed, string $feedback_content): int
     {
+        $solution_completed = $this->normalizeSolutionCompletedFlag($solution_completed);
         $feedbackId = $this->getGenericFeedbackId($question_id, $solution_completed);
 
         if ($feedback_content !== '') {
@@ -499,12 +564,12 @@ abstract class ilAssQuestionFeedback
     /**
      * returns the SPECIFIC answer feedback ID for a given question id and answer index.
      */
-    final protected function getGenericFeedbackId(int $question_id, bool $solution_completed): int
+    final protected function getGenericFeedbackId(int $question_id, bool|int|string $solution_completed): int
     {
         $res = $this->db->queryF(
             "SELECT feedback_id FROM {$this->getGenericFeedbackTableName()} WHERE question_fi = %s AND correctness = %s",
             ['integer','text'],
-            [$question_id, (int) $solution_completed]
+            [$question_id, $this->normalizeSolutionCompletedFlag($solution_completed)]
         );
 
         $feedbackId = -1;
@@ -737,7 +802,7 @@ abstract class ilAssQuestionFeedback
      * for the given question id for either the complete or incomplete solution
      * (using the id sequence of non page object generic feedback)
      */
-    final protected function getGenericFeedbackPageObjectId(int $question_id, bool $solution_completed): int
+    final protected function getGenericFeedbackPageObjectId(int $question_id, bool|int|string $solution_completed): int
     {
         $page_object_id = $this->getGenericFeedbackId($question_id, $solution_completed);
         return $page_object_id;
@@ -794,6 +859,14 @@ abstract class ilAssQuestionFeedback
         $this->saveGenericFeedbackContent($question_id, false, $migrator->migrateToLmContent(
             $this->getGenericFeedbackContent($question_id, false)
         ));
+
+        // JKN PATCH START
+        if ((int) $this->questionOBJ->getNrOfTries() > 0) {
+            $this->saveGenericFeedbackContent($question_id, 'hint', $migrator->migrateToLmContent(
+                $this->getGenericFeedbackContent($question_id, 'hint')
+            ));
+        }
+        // JKN PATCH END
     }
 
     protected function cleanupPageContent(string $content): string

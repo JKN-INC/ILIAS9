@@ -342,7 +342,18 @@ class ilLMTracker
         // load question/pages information
         $this->page_questions = array();
         $this->all_questions = array();
-        $q = ilLMPageObject::queryQuestionsOfLearningModule($this->lm_obj_id, "", "", 0, 0);
+
+        // JKN PATCH START
+        $lang = $this->lng->getDefaultLanguage() === $this->user->getLanguage() ? '-' : $this->user->getLanguage();
+
+        $q = ilLMPageObject::queryQuestionsOfLearningModule($this->lm_obj_id, "", "", 0, 0, $lang);
+
+        //if not questions in users language (no page, go back to default.)
+        if (empty($q["set"])) {
+            $q = ilLMPageObject::queryQuestionsOfLearningModule($this->lm_obj_id, "", "", 0, 0);
+        }
+        // JKN PATCH END
+
         foreach ($q["set"] as $quest) {
             $this->page_questions[$quest["page_id"]][] = $quest["question_id"];
             $this->all_questions[] = $quest["question_id"];

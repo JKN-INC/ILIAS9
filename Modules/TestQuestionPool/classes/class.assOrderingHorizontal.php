@@ -627,6 +627,13 @@ class assOrderingHorizontal extends assQuestion implements ilObjQuestionScoringA
             'allcorrect' => $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), true))
         );
 
+        // JKN PATCH START
+        //if multiple tries, get the hint feedback too.
+        if ((int) $this->getNrOfTries() > 0) {
+            $result['feedback']['tries'] = $this->formatSAQuestion($this->feedbackOBJ->getGenericFeedbackTestPresentation($this->getId(), 'hint'));
+        }
+        // JKN PATCH END
+
         $arr = [];
         foreach ($this->getOrderingElements() as $order => $answer) {
             array_push($arr, array(
