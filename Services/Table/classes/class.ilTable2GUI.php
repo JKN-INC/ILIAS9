@@ -2703,6 +2703,8 @@ class ilTable2GUI extends ilTableGUI
                 case self::EXPORT_CSV:
                     $csv = new ilCSVWriter();
                     $csv->setSeparator(";");
+                    $csv->setSepDirective();
+                    $csv->setNormalizeLineBreaks();
 
                     ob_start();
                     $this->fillMetaCSV($csv);
