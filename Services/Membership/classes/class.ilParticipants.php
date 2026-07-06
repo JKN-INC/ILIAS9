@@ -720,6 +720,7 @@ abstract class ilParticipants
             "AND obj_id = " . $this->ilDB->quote($this->obj_id, 'integer');
         $res = $this->ilDB->manipulate($query);
 
+        $this->rbacReview->clearCaches();
         $this->readParticipants();
         $this->readParticipantsStatus();
 
