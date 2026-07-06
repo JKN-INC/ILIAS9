@@ -27,7 +27,6 @@
  * @extends ilSaxParser
  */
 use ILIAS\Filesystem\Stream\Streams;
-use ILIAS\FileUpload\MimeType;
 
 class ilFileXMLParser extends ilSaxParser
 {
@@ -280,12 +279,6 @@ class ilFileXMLParser extends ilSaxParser
                 if ($this->version == $this->file->getVersion()) {
                     if (is_file($this->tmpFilename)) {
                         $this->file->setFileSize(filesize($this->tmpFilename)); // strlen($this->content));
-                    }
-
-                    // if no file type is given => lookup mime type
-                    if (!$this->file->getFileType()) {
-                        global $DIC;
-                        $this->file->setFileType(MimeType::getMimeType($this->tmpFilename));
                     }
                 }
 
