@@ -869,6 +869,13 @@ class ilFileSystemGUI
                 false
             );
 
+            // JKN PATCH START
+            // Delete the zip file after unzipping
+            if (is_file($a_file)) {
+                unlink($a_file);
+            }
+            // JKN PATCH END
+
             $new_files = array_keys(ilFileUtils::getDir($cur_dir));
             $new_files_r = iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($cur_dir)));
 
