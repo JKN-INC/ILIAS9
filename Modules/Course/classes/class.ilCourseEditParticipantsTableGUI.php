@@ -112,7 +112,7 @@ class ilCourseEditParticipantsTableGUI extends ilTable2GUI
             ilLPStatus::LP_STATUS_FAILED => $this->lng->txt("trac_failed"),
             ilLPStatus::LP_STATUS_NOT_ATTEMPTED => $this->lng->txt("trac_not_attempted"),
         ]);
-        $si->setValue($a_set['progress']);
+        $si->setValue($a_set['progress'] ?? ilLPStatus::LP_STATUS_NOT_ATTEMPTED);
         $this->tpl->setVariable('GRADE_STATUS', $si->render());
         $this->tpl->setVariable('VAL_BLOCKED_CHECKED', $a_set['blocked'] ? 'checked="checked"' : '');
 
