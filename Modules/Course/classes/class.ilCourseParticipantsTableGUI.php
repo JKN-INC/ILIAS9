@@ -242,6 +242,10 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
         if ($this->show_learning_progress) {
             $this->tpl->setCurrentBlock('lp');
             $icons = ilLPStatusIcons::getInstance(ilLPStatusIcons::ICON_VARIANT_LONG);
+
+            if (!isset($a_set['progress'])) {
+                $a_set['progress'] = ilLPStatus::LP_STATUS_NOT_ATTEMPTED;
+            }
             $icon_rendered = $icons->renderIconForStatus($icons->lookupNumStatus($a_set['progress']));
 
             $this->tpl->setVariable('LP_STATUS_ALT', $this->lng->txt($a_set['progress']));
