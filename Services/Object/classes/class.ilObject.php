@@ -595,7 +595,7 @@ class ilObject
         ;
         $obj_set = $this->db->query($sql);
         $obj_rec = $this->db->fetchAssoc($obj_set);
-        $this->last_update = $obj_rec["last_update"];
+        $this->last_update = $obj_rec["last_update"] ?? "";
         $this->create_date = $obj_rec["create_date"];
 
         // set owner for new objects
