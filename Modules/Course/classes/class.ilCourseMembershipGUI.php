@@ -232,15 +232,47 @@ class ilCourseMembershipGUI extends ilMembershipGUI
                 )
             );
         }
-        $passed = $this->initParticipantStatusFromPostFor('passed');
+        $statuses = [];
+        if ($this->http->wrapper()->post()->has('status')) {
+            $statuses = $this->http->wrapper()->post()->retrieve(
+                'status',
+                $this->refinery->kindlyTo()->dictOf(
+                    $this->refinery->kindlyTo()->string()
+                )
+            );
+        }
         $blocked = $this->initParticipantStatusFromPostFor('blocked');
         $contact = $this->initParticipantStatusFromPostFor('contact');
         $notification = $this->initParticipantStatusFromPostFor('notification');
 
         foreach ($visible_members as $member_id) {
             if ($this->access->checkAccess("grade", "", $this->getParentObject()->getRefId())) {
-                $this->getMembersObject()->updatePassed($member_id, in_array($member_id, $passed), true);
-                $this->updateLPFromStatus($member_id, in_array($member_id, $passed));
+                if (isset($statuses[$member_id])) {
+                    switch ($statuses[$member_id]) {
+                        case ilLPStatus::LP_STATUS_FAILED:
+                            $this->getMembersObject()->updateFailed($member_id, true, true);
+                            break;
+                        case ilLPStatus::LP_STATUS_COMPLETED:
+                            $this->getMembersObject()->updatePassed($member_id, true, true);
+                            break;
+                        case ilLPStatus::LP_STATUS_NOT_ATTEMPTED:
+                            ilObjectLP::getInstance($this->getParentObject()->getId())
+                                ->resetLPDataForUserIds([$member_id]);
+                            break;
+                        case ilLPStatus::LP_STATUS_IN_PROGRESS:
+                            ilChangeEvent::_recordReadEvent(
+                                $this->getParentObject()->getType(),
+                                $this->getParentObject()->getRefId(),
+                                $this->getParentObject()->getId(),
+                                $member_id
+                            );
+                            break;
+                    }
+                    $this->updateLPFromStatus($member_id, in_array($statuses[$member_id], [
+                        ilLPStatus::LP_STATUS_COMPLETED,
+                        ilLPStatus::LP_STATUS_FAILED,
+                    ]));
+                }
             }
 
             if ($this->getMembersObject()->isAdmin($member_id) || $this->getMembersObject()->isTutor($member_id)) {

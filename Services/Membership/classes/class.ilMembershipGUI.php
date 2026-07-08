@@ -493,6 +493,15 @@ class ilMembershipGUI
             $this->tpl->setOnScreenMessage('failure', $this->lng->txt('no_checkbox'), true);
             $this->ctrl->redirect($this, 'participants');
         }
+        $statuses = [];
+        if ($this->http->wrapper()->post()->has('status')) {
+            $statuses = $this->http->wrapper()->post()->retrieve(
+                'status',
+                $this->refinery->kindlyTo()->dictOf(
+                    $this->refinery->kindlyTo()->string()
+                )
+            );
+        }
         $notifications = $passed = $blocked = $contact = [];
         if ($this->http->wrapper()->post()->has('notification')) {
             $notifications = $this->http->wrapper()->post()->retrieve(
@@ -635,7 +644,31 @@ class ilMembershipGUI
             }
 
             if ($this instanceof ilCourseMembershipGUI) {
-                $this->getMembersObject()->updatePassed($usr_id, in_array($usr_id, $passed), true);
+                if (isset($statuses[$usr_id]) && $statuses[$usr_id]) {
+                    switch ($statuses[$usr_id]) {
+                        case ilLPStatus::LP_STATUS_FAILED:
+                            $this->getMembersObject()->updateFailed($usr_id, true, true);
+                            break;
+                        case ilLPStatus::LP_STATUS_COMPLETED:
+                            $this->getMembersObject()->updatePassed($usr_id, true, true);
+                            break;
+                        case ilLPStatus::LP_STATUS_NOT_ATTEMPTED:
+                            ilChangeEvent::_deleteReadEventsForUsers($this->getParentObject()->getId(), [$usr_id]);
+                            break;
+                        case ilLPStatus::LP_STATUS_IN_PROGRESS:
+                            ilChangeEvent::_recordReadEvent(
+                                $this->getParentObject()->getType(),
+                                $this->getParentObject()->getRefId(),
+                                $this->getParentObject()->getId(),
+                                $usr_id
+                            );
+                            break;
+                    }
+                    $this->updateLPFromStatus($usr_id, in_array($statuses[$usr_id], [
+                        ilLPStatus::LP_STATUS_COMPLETED,
+                        ilLPStatus::LP_STATUS_FAILED,
+                    ]));
+                }
                 $this->getMembersObject()->sendNotification(
                     ilCourseMembershipMailNotification::TYPE_STATUS_CHANGED,
                     $usr_id
@@ -650,8 +683,6 @@ class ilMembershipGUI
             } else {
                 $this->getMembersObject()->updateContact($usr_id, false);
             }
-
-            $this->updateLPFromStatus($usr_id, in_array($usr_id, $passed));
         }
         $this->tpl->setOnScreenMessage('success', $this->lng->txt("msg_obj_modified"), true);
         $this->ctrl->redirect($this, "participants");

@@ -1615,11 +1615,11 @@ class ilObjCourseGUI extends ilContainerGUI
 
     public function readMemberData(array $ids, array $selected_columns = null, bool $skip_names = false): array
     {
-        $show_tracking =
-            (
-                ilObjUserTracking::_enabledLearningProgress() &&
-                ilObjUserTracking::_enabledUserRelatedData()
-            );
+        // note: intentionally not also gated on ilObjUserTracking::_enabledUserRelatedData() -
+        // that setting only controls display of automatically collected tracking data (e.g. access
+        // times), whereas the LP status here also carries the tutor's manually assigned pass/fail
+        // grade, which must remain visible/settable regardless of that privacy setting.
+        $show_tracking = ilObjUserTracking::_enabledLearningProgress();
         if ($show_tracking) {
             $olp = ilObjectLP::getInstance($this->object->getId());
             $show_tracking = $olp->isActive();
@@ -1709,21 +1709,16 @@ class ilObjCourseGUI extends ilContainerGUI
      */
     public function updateLPFromStatus(int $a_member_id, bool $a_has_passed): void
     {
-        if (ilObjUserTracking::_enabledLearningProgress() &&
-            $this->object->getStatusDetermination() == ilObjCourse::STATUS_DETERMINATION_LP) {
+        if (ilObjUserTracking::_enabledLearningProgress()) {
             $olp = ilObjectLP::getInstance($this->object->getId());
             if ($olp->getCurrentMode() == ilLPObjSettings::LP_MODE_MANUAL_BY_TUTOR) {
                 $marks = new ilLPMarks($this->object->getId(), $a_member_id);
+                $marks->setCompleted($a_has_passed);
+                $marks->update();
 
-                // only if status has changed
-                if ($marks->getCompleted() !== $a_has_passed) {
-                    $marks->setCompleted($a_has_passed);
-                    $marks->update();
-
-                    // as course is origin of LP status change, block syncing
-                    ilCourseAppEventListener::setBlockedForLP(true);
-                    ilLPStatusWrapper::_updateStatus($this->object->getId(), $a_member_id);
-                }
+                // as course is origin of LP status change, block syncing
+                ilCourseAppEventListener::setBlockedForLP(true);
+                ilLPStatusWrapper::_updateStatus($this->object->getId(), $a_member_id);
             }
         }
     }
