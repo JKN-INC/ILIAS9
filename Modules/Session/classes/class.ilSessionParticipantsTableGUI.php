@@ -201,6 +201,11 @@ class ilSessionParticipantsTableGUI extends ilTable2GUI
         return self::$all_columns;
     }
 
+    public function numericOrdering(string $a_field): bool
+    {
+        return in_array($a_field, ['registered', 'participated', 'excused', 'contact'], true);
+    }
+
     public function parse(): void
     {
         $all_participants = [];
