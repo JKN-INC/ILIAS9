@@ -1198,6 +1198,11 @@ class ilInitialisation
             self::initSession();
             self::initUser();
 
+            //soap context has html, so we need to reinit here too.
+            if (ilContext::hasHTML()) {
+                self::initHTML();
+            }
+
             if (ilContext::supportsPersistentSessions()) {
                 self::resumeUserSession();
             }
