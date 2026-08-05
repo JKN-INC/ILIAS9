@@ -37,4 +37,30 @@ class ilScorm2004DatabaseUpdateSteps implements ilDatabaseUpdateSteps
         $this->db->modifyTableColumn("cp_dependency", "resourceid", array("type" => "text", "length" => 200, "notnull" => false, 'default' => null));
     }
 
+    // The following steps port fixes for the same class of bug as step_1/2 above -
+    // columns sized for short, machine-generated SCORM identifiers that real-world
+    // content can legitimately exceed. Concretely: multi-select "select all that
+    // apply" interactions concatenate every correct choice into one pattern string
+    // separated by "[,]", which can run well past 255 characters. When that insert
+    // fails, ilSCORM2004StoreData::setCMIData() throws uncaught (it runs outside any
+    // transaction and isn't wrapped in a try/catch), aborting the commit after
+    // cmi_node has already been saved but before sahs_user/ut_lp_marks are touched.
+
+    public function step_3(): void
+    {
+        $this->db->modifyTableColumn("cmi_correct_response", "pattern", array("type" => "text", "length" => 4000, "notnull" => false, 'default' => null));
+    }
+
+    public function step_4(): void
+    {
+        $this->db->modifyTableColumn("cmi_interaction", "id", array("type" => "text", "length" => 4000, "notnull" => false, 'default' => null));
+    }
+
+    public function step_5(): void
+    {
+        if (!$this->db->indexExistsByFields('sahs_user', ['user_id'])) {
+            $this->db->addIndex('sahs_user', ['user_id'], 'i1');
+        }
+    }
+
 }
