@@ -253,6 +253,10 @@ class ilBTPopOverGUI
         $persistence = $this->dic->backgroundTasks()->persistence();
         $ctrl->setParameterByClass(ilBTControllerGUI::class, ilBTControllerGUI::OBSERVER_ID, $persistence->getBucketContainerId($observer));
 
+        // JKN PATCH START
+        $ctrl->setParameterByClass(ilBTControllerGUI::class, ilBTControllerGUI::IS_ASYNC, "true");
+        // JKN PATCH END
+
         return $ctrl->getLinkTargetByClass([ilBTControllerGUI::class], ilBTControllerGUI::CMD_GET_REPLACEMENT_ITEM);
     }
 
