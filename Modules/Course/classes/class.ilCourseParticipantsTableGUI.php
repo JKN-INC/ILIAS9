@@ -388,7 +388,7 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
             0,
             9999,
             $this->current_filter['login'],
-            $this->current_filter['active'],
+            (string) $this->current_filter['active'],
             null,
             false,
             false,
