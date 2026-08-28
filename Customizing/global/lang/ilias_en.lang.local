@@ -115,3 +115,17 @@ trac#:#gradebook_mark_automated#:#Learning progress is set in the item itself
 trac#:#itgr#:#Item Group
 assessment#:#feedback_incomplete_solution#:#At least one answer is not correct / number of tries exceeded.
 assessment#:#feedback_incomplete_solution_hint#:#At least one answer is not correct and more tries available.
+auth#:#auth_activation_code_success#:#Your account has been reactivated. You can now log in.
+auth#:#auth_err_invalid_user_account#:#Login failed. Please check that you have entered your username and password correctly. If this issue persists, your account may be inactive or have expired. In this case, please contact technical support via the link at the bottom of the screen.
+auth#:#auth_oidc_login_element_info#:#Login via OpenID Connect
+common#:#err_auth_cas_no_ilias_user#:#Login failed. CAS authentication successful, but no corresponding user account exists. Please contact your system administrator.
+common#:#err_auth_ldap_no_ilias_user#:#Login failed. LDAP authentication successful, but no corresponding user account exists. Please contact your system administrator.
+common#:#err_auth_soap_no_ilias_user#:#Login failed. SOAP authentication successful, but no corresponding user account exists. Please contact your system administrator.
+common#:#login_to_ilias_via_cas#:#Login via Central Authentication Service
+common#:#login_to_ilias_via_login_form#:#Login
+common#:#login_to_ilias_via_saml#:#Login via SAML Authentication
+common#:#login_to_ilias_via_shibboleth#:#Login via
+common#:#saml_login_form_txt#:#Login via SAML
+common#:#txt_registered#:#You have successfully registered your account. Please click on the button below to log in with your user account.
+common#:#ums_explanation#:#Your external account could not be mapped to an account. But an account with your e-mail address was found. If this is your account, please login with your password.
+common#:#ums_explanation_3#:#Your external account could not be mapped to an account. But multiple accounts with your e-mail address were found. If one of those is your account, please login with your password.
