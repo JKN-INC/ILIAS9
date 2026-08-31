@@ -92,9 +92,13 @@ class Memcached extends BaseAdaptor implements Adaptor
         $this->server->flush();
     }
 
-    protected function initServer(Config $config): void
+   protected function initServer(Config $config): void
     {
         $this->server = new \Memcached(self::PERSISTENT_ID);
+        // With a persistent ID the server list survives across requests.
+        if (count($this->server->getServerList()) > 0) {
+            return;
+        }
         $nodes = $config->getNodes();
         foreach ($nodes as $node) {
             $this->server->addServer(
