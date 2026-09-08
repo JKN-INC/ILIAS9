@@ -231,7 +231,8 @@ class ilBookingProcessWithScheduleGUI implements \ILIAS\BookingManager\BookingPr
             [$obj->getId()],
             $this->pool->getId(),
             $this->seed,
-            $user_settings->getWeekStart()
+            $user_settings->getWeekStart(),
+            true // no explicit seed? auto-advance to the first week with an open slot
         );
         $tpl->setContent($week_gui->getHTML());
     }

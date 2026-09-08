@@ -40,6 +40,7 @@ class WeekGUI
     protected int $time_format;
     protected int $day_end;
     protected int $day_start;
+    protected bool $find_first_open;
 
     public function __construct(
         object $parent_gui,
@@ -47,7 +48,8 @@ class WeekGUI
         array $obj_ids,
         int $pool_id,
         string $seed_str = "",
-        int $week_start = \ilCalendarSettings::WEEK_START_MONDAY
+        int $week_start = \ilCalendarSettings::WEEK_START_MONDAY,
+        bool $find_first_open = false
     ) {
         global $DIC;
 
@@ -62,6 +64,10 @@ class WeekGUI
         $this->seed = ($this->seed_str !== "")
             ? new \ilDate($this->seed_str, IL_CAL_DATE)
             : new \ilDate(time(), IL_CAL_UNIX);
+        // only auto-advance to the next week with an open slot if the
+        // caller didn't request a specific date (mirrors the pre-9.0
+        // ilBookingProcessGUI::book() behavior for single-object booking)
+        $this->find_first_open = $find_first_open && $this->seed_str === "";
         $this->week_start = $week_start;
         $this->object_manager = $DIC->bookingManager()->internal()
             ->domain()->objects($pool_id);
@@ -69,6 +75,20 @@ class WeekGUI
 
     public function getHTML(): string
     {
+        $entries = $this->getWeekGridEntries($this->obj_ids);
+
+        if ($this->find_first_open && count($entries) === 0) {
+            // no open slot in the starting week -> search forward, capped at 1 year,
+            // for the first week that actually has one, and land there
+            $limit = clone $this->seed;
+            $limit->increment(\ilDateTime::YEAR, 1);
+            $limit_ts = $limit->get(IL_CAL_UNIX);
+            while (count($entries) === 0 && $this->seed->get(IL_CAL_UNIX) < $limit_ts) {
+                $this->seed->increment(\ilDateTime::WEEK, 1);
+                $entries = $this->getWeekGridEntries($this->obj_ids);
+            }
+        }
+
         $navigation = new \ilCalendarHeaderNavigationGUI(
             $this->parent_gui,
             $this->seed,
@@ -98,7 +118,7 @@ class WeekGUI
         );*/
 
         $week_widget = new WeekGridGUI(
-            $this->getWeekGridEntries($this->obj_ids),
+            $entries,
             $this->seed,
             $this->day_start,
             $this->day_end,
