@@ -288,9 +288,7 @@ class ilBookingProcessWithScheduleGUI implements \ILIAS\BookingManager\BookingPr
                 $this->lng->txt("book_confirm_booking_schedule_number_of_objects_info")
             )
             ->number("nr", $period, "", 1, 1, $counter)
-            ->radio("recurrence", $this->lng->txt("book_recurrence"), "", "0")
-            ->radioOption("0", $this->lng->txt("book_no_recurrence"))
-            ->radioOption("1", $this->lng->txt("book_book_recurrence"))
+            ->hidden("recurrence", "0")
             ->hidden("origin_cmd", $this->book_request->getOriginCmd());
         if ($this->pool->usesMessages()) {
             $form = $form->textarea(
