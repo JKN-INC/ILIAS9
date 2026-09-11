@@ -139,13 +139,21 @@ class ilArrayUtil
         }
 
         // JKN PATCH START
-        $leftValue = isset($left[$array_sortby]) && is_string($left[$array_sortby])
-            ? iconv('UTF-8', 'ASCII//TRANSLIT', $left[$array_sortby])
-            : '';
+        // Transliterate string values so accented characters sort next to their
+        // unaccented equivalents. Non-string scalars (e.g. numeric status codes)
+        // are compared via their string representation instead, since iconv()
+        // only accepts strings; non-scalar values (e.g. arrays) fall back to an
+        // empty string since they have no meaningful string representation.
+        $leftRaw = $left[$array_sortby] ?? '';
+        $rightRaw = $right[$array_sortby] ?? '';
 
-        $rightValue = isset($right[$array_sortby]) && is_string($right[$array_sortby])
-            ? iconv('UTF-8', 'ASCII//TRANSLIT', $right[$array_sortby])
-            : '';
+        $leftValue = is_string($leftRaw)
+            ? iconv('UTF-8', 'ASCII//TRANSLIT', $leftRaw)
+            : (is_scalar($leftRaw) ? (string) $leftRaw : '');
+
+        $rightValue = is_string($rightRaw)
+            ? iconv('UTF-8', 'ASCII//TRANSLIT', $rightRaw)
+            : (is_scalar($rightRaw) ? (string) $rightRaw : '');
         // JKN PATCH END
 
         // this comparison should give optimal results if
