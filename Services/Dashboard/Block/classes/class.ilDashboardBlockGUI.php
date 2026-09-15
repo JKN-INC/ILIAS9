@@ -150,13 +150,15 @@ abstract class ilDashboardBlockGUI extends ilBlockGUI implements ilDesktopItemHa
 
     protected function preloadData(array $data): void
     {
-        $obj_ids = [];
+        $listPreloader = new ilObjectListGUIPreloader(ilObjectListGUI::CONTEXT_PERSONAL_DESKTOP);
+
         foreach ($data as $group) {
             foreach ($group as $datum) {
-                $obj_ids[] = $datum->getObjId();
+                $listPreloader->addItem($datum->getObjId(), $datum->getType(), $datum->getRefId());
             }
         }
-        ilLPStatus::preloadListGUIData($obj_ids);
+
+        $listPreloader->preload();
         parent::preloadData($data);
     }
 
