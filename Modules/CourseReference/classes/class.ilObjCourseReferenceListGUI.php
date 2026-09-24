@@ -183,6 +183,10 @@ class ilObjCourseReferenceListGUI extends ilObjCourseListGUI
                 // check against target ref_id
                 return parent::checkCommandAccess($permission, $cmd, $this->getCommandId(), $type, $obj_id);
 
+            case 'crs_linked':
+                // $ref_id is the target course, so check it as 'crs' instead of 'crsr'
+                return parent::checkCommandAccess($permission, $cmd, $ref_id, 'crs', $obj_id);
+
             default:
                 // check against reference
                 return parent::checkCommandAccess($permission, $cmd, $ref_id, $type, $obj_id);
