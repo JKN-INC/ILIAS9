@@ -40,7 +40,8 @@ class ilOrgUnitOperationRegisteredObjective implements Setup\Objective
 
     public function getHash(): string
     {
-        return hash('sha256', self::class . '::' . $this->operation_name);
+        // the same operation may be registered in several contexts
+        return hash('sha256', self::class . '::' . $this->operation_name . '::' . $this->context);
     }
 
     public function getLabel(): string
