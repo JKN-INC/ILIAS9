@@ -48,7 +48,36 @@ class ilOrgUnitSetupAgent implements Setup\Agent
 
     public function getUpdateObjective(Setup\Config $config = null): Setup\Objective
     {
-        return new Setup\Objective\NullObjective();
+        return new Setup\ObjectiveCollection(
+            'OrgUnit',
+            true,
+            ...$this->getLearningProgressContextObjectives()
+        );
+    }
+
+    /**
+     * Position based access to learning progress for types that have
+     * orgunit_permissions="1" in their module.xml but no core context.
+     * @return Setup\Objective[]
+     */
+    protected function getLearningProgressContextObjectives(): array
+    {
+        $objectives = [];
+        foreach ([
+            ilOrgUnitOperationContext::CONTEXT_SAHS,
+            ilOrgUnitOperationContext::CONTEXT_CRSR
+        ] as $context) {
+            $objectives[] = new ilOrgUnitOperationContextRegisteredObjective(
+                $context,
+                ilOrgUnitOperationContext::CONTEXT_OBJECT
+            );
+            $objectives[] = new ilOrgUnitOperationRegisteredObjective(
+                ilOrgUnitOperation::OP_READ_LEARNING_PROGRESS,
+                'Read the learning progress of other users',
+                $context
+            );
+        }
+        return $objectives;
     }
 
     public function getBuildArtifactObjective(): Setup\Objective
