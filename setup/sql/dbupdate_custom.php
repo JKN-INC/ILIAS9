@@ -150,6 +150,18 @@ foreach (['user_course_data_extended', 'udf_search', 'user_course_data', 'user_s
 	}
 }
 
+// user_course_data looks up the latest event_archive row of each enrolment by (usr_id, obj_id); without an index
+// starting with those columns that is a full table scan per enrolment (prod has eva_usr_obj_id, old copies may not)
+$res = $ilDB->query(
+	"SELECT 1 FROM information_schema.statistics a JOIN information_schema.statistics b"
+	. " ON b.table_schema = a.table_schema AND b.table_name = a.table_name AND b.index_name = a.index_name"
+	. " WHERE a.table_schema = DATABASE() AND a.table_name = 'event_archive'"
+	. " AND a.seq_in_index = 1 AND a.column_name = 'usr_id' AND b.seq_in_index = 2 AND b.column_name = 'obj_id'"
+);
+if (!$ilDB->fetchAssoc($res)) {
+	$ilDB->manipulate('ALTER TABLE event_archive ADD INDEX eva (usr_id, obj_id)');
+}
+
 // one row per user and org unit assignment (and one for users without one); badge = UDF 'Badge Number'
 $ilDB->manipulate(<<<'SQL'
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW user_search AS
