@@ -492,6 +492,9 @@ class ilObjStyleSheet extends ilObject
     protected static string $basic_style_image_dir = "./libs/ilias/Style/basic_style/images";
     protected static ?DOMDocument $basic_style_dom = null;
 
+    /** @var array<int, ilObjStyleSheet> */
+    protected static array $lookup_instances = [];
+
     public function __construct(
         int $a_id = 0,
         bool $a_call_by_reference = false
@@ -510,6 +513,24 @@ class ilObjStyleSheet extends ilObject
         }
         parent::__construct($a_id, false);
         $this->repo = $DIC->contentStyle()->internal()->repo();
+    }
+
+    /**
+     * Shared instance for read-only characteristic lookups. Page editor UIs
+     * query the characteristics of the same style many times per request.
+     */
+    public static function getLookupInstance(int $a_id): self
+    {
+        return self::$lookup_instances[$a_id] ??= new self($a_id);
+    }
+
+    public static function clearLookupInstance(?int $a_id = null): void
+    {
+        if (is_null($a_id)) {
+            self::$lookup_instances = [];
+        } else {
+            unset(self::$lookup_instances[$a_id]);
+        }
     }
 
     public static function getBasicZipPath(): string
@@ -924,6 +945,7 @@ class ilObjStyleSheet extends ilObject
             "outdated" => ["integer", (int) $outdated],
             "order_nr" => ["integer", $order_nr]
         ]);
+        \ILIAS\Style\Content\CharacteristicDBRepo::clearCache($this->getId());
 
         $this->setUpToDate(false);
         $this->_writeUpToDate($this->getId(), false);
@@ -985,6 +1007,7 @@ class ilObjStyleSheet extends ilObject
             " type = " . $ilDB->quote($a_type, "text") . " AND " .
             " characteristic = " . $ilDB->quote($a_char, "text")
         );
+        \ILIAS\Style\Content\CharacteristicDBRepo::clearCache($this->getId());
     }
 
     /**
@@ -1210,6 +1233,7 @@ class ilObjStyleSheet extends ilObject
 
     public function delete(): bool
     {
+        \ILIAS\Style\Content\CharacteristicDBRepo::clearCache($this->getId());
         $ilDB = $this->db;
 
         // delete object
@@ -2019,6 +2043,7 @@ class ilObjStyleSheet extends ilObject
         if ($this->is_3_10_skin) {
             $this->do_3_10_Migration();
         }
+        \ILIAS\Style\Content\CharacteristicDBRepo::clearCache($this->getId());
         //$this->writeCSSFile();
     }
 
@@ -2238,6 +2263,7 @@ class ilObjStyleSheet extends ilObject
                         array("integer", "text", "text"),
                         array($id, $cs["type"], $cs["class"])
                     );
+                    \ILIAS\Style\Content\CharacteristicDBRepo::clearCache($id);
 
                     $xpath = new DOMXPath($bdom);
                     $par_nodes = $xpath->query("/StyleSheet/Style[@Tag = '" . $cs["tag"] . "' and @Type='" .

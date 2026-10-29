@@ -173,7 +173,7 @@ class ilPCListGUI extends ilPageContentGUI
 
         if ($a_style_id > 0 &&
             ilObject::_lookupType($a_style_id) == "sty") {
-            $style = new ilObjStyleSheet($a_style_id);
+            $style = ilObjStyleSheet::getLookupInstance($a_style_id);
             $types = [$type];
             foreach ($types as $t) {
                 $chars = array_merge($chars, $style->getCharacteristics($t, false, true));

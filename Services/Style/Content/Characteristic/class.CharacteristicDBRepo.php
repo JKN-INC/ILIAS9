@@ -31,12 +31,98 @@ class CharacteristicDBRepo
     protected ilDBInterface $db;
     protected InternalDataService $factory;
 
+    /**
+     * Characteristic records (incl. titles) per style, in "order_nr, type, characteristic" order.
+     * The page editor resolves hundreds of characteristics per request, so all records of a
+     * style are read with two queries and served from here.
+     * @var array<int, array{list: array[], keys: array<string, int>}>
+     */
+    protected static array $cache = [];
+
     public function __construct(
         ilDBInterface $db,
         InternalDataService $factory
     ) {
         $this->db = $db;
         $this->factory = $factory;
+    }
+
+    /**
+     * Invalidates the cached characteristics of a style (or all styles). Called
+     * whenever style_char or style_char_title is written; this also drops the
+     * shared ilObjStyleSheet lookup instance, which holds the same data.
+     */
+    public static function clearCache(?int $style_id = null): void
+    {
+        if (is_null($style_id)) {
+            self::$cache = [];
+        } else {
+            unset(self::$cache[$style_id]);
+        }
+        ilObjStyleSheet::clearLookupInstance($style_id);
+    }
+
+    /**
+     * Case-insensitive lookup key, mirroring the general_ci collation of style_char
+     * for ASCII names (characteristic and type names are restricted to ASCII).
+     */
+    protected static function cacheKey(string $type, string $characteristic): string
+    {
+        return mb_strtolower($type) . ":" . mb_strtolower($characteristic);
+    }
+
+    /**
+     * @return array{list: array[], keys: array<string, int>}
+     */
+    protected function getCachedRecords(int $style_id): array
+    {
+        if (isset(self::$cache[$style_id])) {
+            return self::$cache[$style_id];
+        }
+        $db = $this->db;
+
+        $list = [];
+        $keys = [];
+        $set = $db->queryF(
+            "SELECT * FROM style_char " .
+            " WHERE style_id = %s " .
+            " ORDER BY order_nr, type, characteristic",
+            ["integer"],
+            [$style_id]
+        );
+        while ($rec = $db->fetchAssoc($set)) {
+            $rec["titles"] = [];
+            $keys[self::cacheKey($rec["type"], $rec["characteristic"])] = count($list);
+            $list[] = $rec;
+        }
+
+        $set = $db->queryF(
+            "SELECT * FROM style_char_title " .
+            " WHERE style_id = %s ",
+            ["integer"],
+            [$style_id]
+        );
+        while ($rec = $db->fetchAssoc($set)) {
+            $i = $keys[self::cacheKey($rec["type"], $rec["characteristic"])] ?? null;
+            if (!is_null($i)) {
+                $list[$i]["titles"][$rec["lang"]] = $rec["title"];
+            }
+        }
+
+        return self::$cache[$style_id] = ["list" => $list, "keys" => $keys];
+    }
+
+    protected function getCharacteristicFromRecord(int $style_id, array $rec): Characteristic
+    {
+        return $this->factory->characteristic(
+            $rec["type"],
+            $rec["characteristic"],
+            (bool) $rec["hide"],
+            $rec["titles"],
+            $style_id,
+            (int) $rec["order_nr"],
+            (bool) $rec["outdated"]
+        );
     }
 
     public function addCharacteristic(
@@ -47,6 +133,7 @@ class CharacteristicDBRepo
         int $order_nr = 0,
         bool $outdated = false
     ): void {
+        self::clearCache($style_id);
         $db = $this->db;
 
         $db->insert("style_char", [
@@ -64,18 +151,7 @@ class CharacteristicDBRepo
         string $type,
         string $char
     ): bool {
-        $db = $this->db;
-
-        $set = $db->queryF(
-            "SELECT * FROM style_char " .
-            " WHERE style_id = %s AND type = %s AND characteristic = %s",
-            ["integer", "text", "text"],
-            [$style_id, $type, $char]
-        );
-        if ($db->fetchAssoc($set)) {
-            return true;
-        }
-        return false;
+        return isset($this->getCachedRecords($style_id)["keys"][self::cacheKey($type, $char)]);
     }
 
     public function getByKey(
@@ -83,36 +159,21 @@ class CharacteristicDBRepo
         string $type,
         string $characteristic
     ): ?Characteristic {
-        $db = $this->db;
-
-        $set = $db->queryF(
-            "SELECT * FROM style_char " .
-            " WHERE style_id = %s AND type = %s AND characteristic = %s ",
-            ["integer", "text", "text"],
-            [$style_id, $type, $characteristic]
-        );
-        if ($rec = $db->fetchAssoc($set)) {
-            $set2 = $db->queryF(
-                "SELECT * FROM style_char_title " .
-                " WHERE style_id = %s AND type = %s AND characteristic = %s ",
-                ["integer", "text", "text"],
-                [$style_id, $type, $characteristic]
-            );
-            $titles = [];
-            while ($rec2 = $db->fetchAssoc($set2)) {
-                $titles[$rec2["lang"]] = $rec2["title"];
-            }
-            return $this->factory->characteristic(
-                $type,
-                $characteristic,
-                (bool) $rec["hide"],
-                $titles,
-                $style_id,
-                (int) $rec["order_nr"],
-                (bool) $rec["outdated"]
-            );
+        $records = $this->getCachedRecords($style_id);
+        $i = $records["keys"][self::cacheKey($type, $characteristic)] ?? null;
+        if (is_null($i)) {
+            return null;
         }
-        return null;
+        $rec = $records["list"][$i];
+        return $this->factory->characteristic(
+            $type,
+            $characteristic,
+            (bool) $rec["hide"],
+            $rec["titles"],
+            $style_id,
+            (int) $rec["order_nr"],
+            (bool) $rec["outdated"]
+        );
     }
 
     public function getByType(
@@ -131,41 +192,17 @@ class CharacteristicDBRepo
         bool $include_hidden = true,
         bool $include_outdated = true
     ): array {
-        $db = $this->db;
-
-        $set = $db->queryF(
-            "SELECT * FROM style_char " .
-            " WHERE style_id = %s AND " . $db->in("type", $types, false, "text") .
-            " ORDER BY order_nr, type, characteristic",
-            ["integer"],
-            [$style_id]
-        );
+        $types = array_map("mb_strtolower", $types);
         $chars = [];
-        while ($rec = $db->fetchAssoc($set)) {
+        foreach ($this->getCachedRecords($style_id)["list"] as $rec) {
+            if (!in_array(mb_strtolower($rec["type"]), $types, true)) {
+                continue;
+            }
             if (($rec["hide"] && !$include_hidden) ||
                 ($rec["outdated"] && !$include_outdated)) {
                 continue;
             }
-
-            $set2 = $db->queryF(
-                "SELECT * FROM style_char_title " .
-                " WHERE style_id = %s AND type = %s AND characteristic = %s ",
-                ["integer", "text", "text"],
-                [$style_id, $rec["type"], $rec["characteristic"]]
-            );
-            $titles = [];
-            while ($rec2 = $db->fetchAssoc($set2)) {
-                $titles[$rec2["lang"]] = $rec2["title"];
-            }
-            $chars[] = $this->factory->characteristic(
-                $rec["type"],
-                $rec["characteristic"],
-                (bool) $rec["hide"],
-                $titles,
-                $style_id,
-                (int) $rec["order_nr"],
-                (bool) $rec["outdated"]
-            );
+            $chars[] = $this->getCharacteristicFromRecord($style_id, $rec);
         }
         return $chars;
     }
@@ -197,6 +234,7 @@ class CharacteristicDBRepo
         string $characteristic,
         array $titles
     ): void {
+        self::clearCache($style_id);
         $db = $this->db;
 
         $db->manipulateF(
@@ -224,6 +262,7 @@ class CharacteristicDBRepo
         string $lang,
         string $title
     ): void {
+        self::clearCache($style_id);
         $db = $this->db;
 
         $db->insert("style_char_title", [
@@ -240,6 +279,7 @@ class CharacteristicDBRepo
         int $from_style_id,
         int $to_style_id
     ): void {
+        self::clearCache($to_style_id);
         $set = $this->db->queryF(
             "SELECT * FROM style_char " .
             " WHERE style_id = %s ",
@@ -282,6 +322,7 @@ class CharacteristicDBRepo
         string $characteristic,
         bool $hide
     ): void {
+        self::clearCache($style_id);
         $db = $this->db;
 
         $db->update(
@@ -306,6 +347,7 @@ class CharacteristicDBRepo
         string $characteristic,
         bool $outdated
     ): void {
+        self::clearCache($style_id);
         $db = $this->db;
 
         $db->update(
@@ -326,18 +368,9 @@ class CharacteristicDBRepo
         string $type,
         string $characteristic
     ): bool {
-        $db = $this->db;
-
-        $set = $db->queryF(
-            "SELECT outdated FROM style_char " .
-            " WHERE style_id = %s AND type = %s AND characteristic = %s",
-            ["integer", "text", "text"],
-            [$style_id, $type, $characteristic]
-        );
-        if ($rec = $db->fetchAssoc($set)) {
-            return (bool) $rec["outdated"];
-        }
-        return false;
+        $records = $this->getCachedRecords($style_id);
+        $i = $records["keys"][self::cacheKey($type, $characteristic)] ?? null;
+        return !is_null($i) && $records["list"][$i]["outdated"];
     }
 
     public function saveOrderNr(
@@ -346,6 +379,7 @@ class CharacteristicDBRepo
         string $characteristic,
         int $order_nr
     ): void {
+        self::clearCache($style_id);
         $db = $this->db;
 
         $db->update(
@@ -367,6 +401,7 @@ class CharacteristicDBRepo
         string $tag,
         string $class
     ): void {
+        self::clearCache($style_id);
         $db = $this->db;
 
         // delete characteristic record

@@ -1453,7 +1453,7 @@ class ilPCMediaObjectGUI extends ilPageContentGUI
         $chars = self::_getStandardCharacteristics();
         if ($a_style_id > 0 &&
             ilObject::_lookupType($a_style_id) == "sty") {
-            $style = new ilObjStyleSheet($a_style_id);
+            $style = ilObjStyleSheet::getLookupInstance($a_style_id);
             $chars = $style->getCharacteristics("media_cont");
             $new_chars = array();
             foreach ($chars as $char) {

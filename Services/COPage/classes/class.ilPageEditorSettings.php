@@ -36,6 +36,12 @@ class ilPageEditorSettings
         );
 
     /**
+     * Settings values per group, read with one query per group and request
+     * @var array<string, array<string, string>>
+     */
+    protected static array $cache = [];
+
+    /**
      * Get all settings groups
      */
     public static function getGroups(): array
@@ -67,6 +73,7 @@ class ilPageEditorSettings
             $ilDB->quote($a_name, "text") . "," .
             $ilDB->quote($a_value, "text") .
             ")");
+        unset(self::$cache[mb_strtolower($a_grp)]);
     }
 
     /**
@@ -81,16 +88,19 @@ class ilPageEditorSettings
 
         $ilDB = $DIC->database();
 
-        $set = $ilDB->query(
-            "SELECT value FROM page_editor_settings " .
-            " WHERE settings_grp = " . $ilDB->quote($a_grp, "text") .
-            " AND name = " . $ilDB->quote($a_name, "text")
-        );
-        if ($rec = $ilDB->fetchAssoc($set)) {
-            return (string) $rec["value"];
+        $grp_key = mb_strtolower($a_grp);
+        if (!isset(self::$cache[$grp_key])) {
+            self::$cache[$grp_key] = [];
+            $set = $ilDB->query(
+                "SELECT name, value FROM page_editor_settings " .
+                " WHERE settings_grp = " . $ilDB->quote($a_grp, "text")
+            );
+            while ($rec = $ilDB->fetchAssoc($set)) {
+                self::$cache[$grp_key][mb_strtolower($rec["name"])] = (string) $rec["value"];
+            }
         }
 
-        return $a_default;
+        return self::$cache[$grp_key][mb_strtolower($a_name)] ?? $a_default;
     }
 
     /**
