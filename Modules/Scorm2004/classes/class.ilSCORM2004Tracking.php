@@ -253,11 +253,14 @@ class ilSCORM2004Tracking
             );
 
             $started = false;
-            $cntcompleted = 0;
+            // completed SCOs, each counted once: a learner can have more than one cmi_node record for the same SCO
+            // (e.g. after relaunching it in review mode), and counting records kept such modules at
+            // "100%, in progress" forever
+            $completed_scos = [];
             $failed = false;
             while ($rec = $ilDB->fetchAssoc($res)) {
                 if ($rec["completion"] === "completed" || $rec["success"] === "passed") {
-                    $cntcompleted++;
+                    $completed_scos[$rec["id"]] = true;
                 }
                 if ($rec["success"] === "failed") {
                     $failed = true;
@@ -269,7 +272,7 @@ class ilSCORM2004Tracking
             }
             if ($failed == true) {
                 $status = "failed";
-            } elseif ($cntcompleted == count($a_scos)) {
+            } elseif (count($completed_scos) == count(array_unique($a_scos))) {
                 $status = "completed";
             }
         }
@@ -285,7 +288,8 @@ class ilSCORM2004Tracking
         global $DIC;
 
         $ilDB = $DIC->database();
-        $cnt = 0;
+        // completed SCOs, each counted once (see _getCollectionStatus: duplicate cmi_node records of a SCO)
+        $completed_scos = [];
 
         if (is_array($a_scos)) {
             $in = $ilDB->in('cp_node.cp_node_id', $a_scos, false, 'integer');
@@ -310,11 +314,11 @@ class ilSCORM2004Tracking
                 // percentage calculation at ilLPStatusSCOM::determinePercentage
                 if (($rec["completion"] === "completed" || $rec["success"] === "passed")
                     && (!$a_omit_failed || $rec["success"] !== "failed")) {
-                    $cnt++;
+                    $completed_scos[$rec["id"]] = true;
                 }
             }
         }
-        return $cnt;
+        return count($completed_scos);
     }
 
     /**
