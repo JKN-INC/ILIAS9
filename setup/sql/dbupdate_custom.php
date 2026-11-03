@@ -230,3 +230,18 @@ WHERE obj.type = 'crs'
 SQL);
 
 ?>
+
+<#22>
+<?php
+
+// SCORM 2004: ILIAS reads and deletes a learner's objectives by cmi_node_id, but cmi_objective has no index starting
+// with it, so every lookup is a full table scan (5M rows and 3-4 s per SCO launch/save on eproctor). Built online.
+$res = $ilDB->query(
+	"SELECT 1 FROM information_schema.statistics"
+	. " WHERE table_schema = DATABASE() AND table_name = 'cmi_objective' AND seq_in_index = 1 AND column_name = 'cmi_node_id'"
+);
+if (!$ilDB->fetchAssoc($res)) {
+	$ilDB->manipulate('ALTER TABLE cmi_objective ADD INDEX nod (cmi_node_id), ALGORITHM=INPLACE, LOCK=NONE');
+}
+
+?>
