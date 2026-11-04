@@ -2635,11 +2635,16 @@ class ilObjUser extends ilObject
 
     /**
      * lookup org unit representation
+     * (one user: direct lookup; the temp-table variant copies every org unit assignment first)
      */
     public static function lookupOrgUnitsRepresentation(
         int $a_usr_id
     ): string {
-        return ilOrgUnitPathStorage::getTextRepresentationOfUsersOrgUnits($a_usr_id);
+        return ilOrgUnitPathStorage::getTextRepresentationOfUsersOrgUnits(
+            $a_usr_id,
+            ilOrgUnitPathStorage::ORG_SEPARATOR,
+            false
+        );
     }
 
     public function getOrgUnitsRepresentation(): string
