@@ -1629,6 +1629,9 @@ class ilObjCourseGUI extends ilContainerGUI
             $completed = ilLPStatusWrapper::_lookupCompletedForObject($this->object->getId());
             $in_progress = ilLPStatusWrapper::_lookupInProgressForObject($this->object->getId());
             $failed = ilLPStatusWrapper::_lookupFailedForObject($this->object->getId());
+            $completed = array_flip($completed);
+            $in_progress = array_flip($in_progress);
+            $failed = array_flip($failed);
         }
         $privacy = ilPrivacySettings::getInstance();
 
@@ -1671,11 +1674,11 @@ class ilObjCourseGUI extends ilContainerGUI
             $tmp_data['usr_id'] = $usr_id;
 
             if ($show_tracking) {
-                if (in_array($usr_id, $completed)) {
+                if (isset($completed[$usr_id])) {
                     $tmp_data['progress'] = ilLPStatus::LP_STATUS_COMPLETED;
-                } elseif (in_array($usr_id, $in_progress)) {
+                } elseif (isset($in_progress[$usr_id])) {
                     $tmp_data['progress'] = ilLPStatus::LP_STATUS_IN_PROGRESS;
-                } elseif (in_array($usr_id, $failed)) {
+                } elseif (isset($failed[$usr_id])) {
                     $tmp_data['progress'] = ilLPStatus::LP_STATUS_FAILED;
                 } else {
                     $tmp_data['progress'] = ilLPStatus::LP_STATUS_NOT_ATTEMPTED;

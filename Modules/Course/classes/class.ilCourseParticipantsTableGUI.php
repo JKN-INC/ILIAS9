@@ -401,11 +401,15 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
         // filter by array
         $usr_ids = array();
         $local_roles = $this->getParentObject()->getLocalRoles();
+        $role_members = [];
+        foreach (array_keys($local_roles) as $role_id) {
+            $role_members[$role_id] = array_flip($this->rbacReview->assignedUsers((int) $role_id));
+        }
+        $filter_role = (int) ($this->current_filter['roles'] ?? 0);
+        $filter_role_members = $filter_role ? array_flip($this->rbacReview->assignedUsers($filter_role)) : [];
         foreach ((array) $usr_data['set'] as $user) {
-            if ($this->current_filter['roles'] ?? false) {
-                if (!$this->rbacReview->isAssigned($user['usr_id'], $this->current_filter['roles'])) {
-                    continue;
-                }
+            if ($filter_role && !isset($filter_role_members[(int) $user['usr_id']])) {
+                continue;
             }
             if ($this->current_filter['org_units'] ?? false) {
                 $org_unit = $this->current_filter['org_units'];
@@ -425,11 +429,12 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
             $this->getSelectedColumns(),
             true
         );
+        $usr_id_set = array_flip($usr_ids);
         $a_user_data = array();
         foreach ((array) $usr_data['set'] as $ud) {
             $user_id = (int) $ud['usr_id'];
 
-            if (!in_array($user_id, $usr_ids)) {
+            if (!isset($usr_id_set[$user_id])) {
                 continue;
             }
             // #15434
@@ -446,8 +451,7 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
 
             $roles = array();
             foreach ($local_roles as $role_id => $role_name) {
-                // @todo fix performance
-                if ($this->rbacReview->isAssigned($user_id, $role_id)) {
+                if (isset($role_members[$role_id][$user_id])) {
                     $roles[] = $role_name;
                 }
             }
@@ -499,7 +503,7 @@ class ilCourseParticipantsTableGUI extends ilParticipantTableGUI
             foreach ($data as $usr_id => $fields) {
                 $usr_id = (int) $usr_id;
                 // #7264: as we get data for all course members filter against user data
-                if (!$this->checkAcceptance($usr_id) || !in_array($usr_id, $usr_ids)) {
+                if (!$this->checkAcceptance($usr_id) || !isset($usr_id_set[$usr_id])) {
                     continue;
                 }
 
