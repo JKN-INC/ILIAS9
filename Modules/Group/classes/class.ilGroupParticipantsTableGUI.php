@@ -315,12 +315,16 @@ class ilGroupParticipantsTableGUI extends ilParticipantTableGUI
         $a_user_data = array();
         $filtered_user_ids = array();
         $local_roles = $this->getParentObject()->getLocalRoles();
+        $role_members = [];
+        foreach (array_keys($local_roles) as $role_id) {
+            $role_members[$role_id] = array_flip($this->rbacreview->assignedUsers((int) $role_id));
+        }
+        $filter_role = (int) ($this->current_filter['roles'] ?? 0);
+        $filter_role_members = $filter_role ? array_flip($this->rbacreview->assignedUsers($filter_role)) : [];
         foreach ((array) $usr_data['set'] as $ud) {
             $user_id = (int) $ud['usr_id'];
-            if ($this->current_filter['roles']) {
-                if (!$this->rbacreview->isAssigned($user_id, $this->current_filter['roles'])) {
-                    continue;
-                }
+            if ($filter_role && !isset($filter_role_members[$user_id])) {
+                continue;
             }
             if (array_key_exists('org_units', $this->current_filter) && $this->current_filter['org_units']) {
                 $org_unit = $this->current_filter['org_units'];
@@ -335,8 +339,7 @@ class ilGroupParticipantsTableGUI extends ilParticipantTableGUI
 
             $roles = array();
             foreach ($local_roles as $role_id => $role_name) {
-                // @todo fix performance
-                if ($this->rbacreview->isAssigned($user_id, $role_id)) {
+                if (isset($role_members[$role_id][$user_id])) {
                     $roles[] = $role_name;
                 }
             }
